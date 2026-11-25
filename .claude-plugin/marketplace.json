@@ -1,0 +1,16 @@
+{
+  "name": "ai-skills",
+  "owner": {
+    "name": "Alhassanamedu"
+  },
+  "metadata": {
+    "description": "Alhassanamedu's Claude Code skills, starting with motion graphics and animated films."
+  },
+  "plugins": [
+    {
+      "name": "motion-graphics",
+      "source": "./plugins/motion-graphics",
+      "description": "Code-rendered motion graphics and animated films: HyperFrames, onetake, Collage B-roll, Claude Animation Base and Lemo-Opuscar."
+    }
+  ]
+}
