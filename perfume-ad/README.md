@@ -17,3 +17,12 @@ Fictitious perfume brand. Built 2026-11-25 with the Motion Graphics Skill Pack (
 ## Why these choices
 - Rebuilt from a first 2D version because it broke three pack rules: end card in the Reel UI zone, bounce easing, gradient text.
 - Exported with ffmpeg + headless Chromium instead of HyperFrames; the pack lists this as an accepted route.
+
+## Board A: "The Portrait" (10s)
+- `portrait.html` — marble bust + bottle, tracked camera with focus pulls, saffron threads wrapping the neck, stone warming to gold.
+- `orvelle-portrait-1080.mp4` — 1080×1920 delivery file.
+- 4K master: `node render.js --page portrait.html --scale 2 --out orvelle-portrait-4k.mp4 --hits 0.4,3.0,4.6,5.1,5.6,6.1,7.3` (about 40–60 min here).
+
+## Credits (required)
+Head: "Infinite, 3D Head Scan" by Lee Perry-Smith, licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). Based on a work at www.triplegangers.com. Rendered here as marble with added procedural veining. Licence file: `assets/head/LeePerrySmith_License.txt`.
+Fonts: Cormorant Garamond and Inter, SIL Open Font License.
