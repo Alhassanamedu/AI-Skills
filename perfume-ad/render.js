@@ -17,6 +17,8 @@ const outName = arg('out', 'orvelle-ad.mp4');
 const deliver = arg('deliver', null);
 const hits = arg('hits', null);
 const framesDir = process.env.FRAMES_DIR || path.join(dir, '.frames');
+const query = arg('query', '');   // extra page params, e.g. --query nobust
+const from = Number(arg('from', '0'));   // start time in s; with --from > 0 the output is a silent segment (no score)
 const checkTimes = arg('check', null)?.split(',').map(Number);
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.glb': 'model/gltf-binary' };
@@ -30,7 +32,7 @@ const ENC = '-c:v libx264 -profile:v high -crf 17 -preset slow -pix_fmt yuv420p 
 
 (async () => {
   await new Promise(r => server.listen(0, '127.0.0.1', r));
-  const url = `http://127.0.0.1:${server.address().port}/${page}?render&scale=${scale}`;
+  const url = `http://127.0.0.1:${server.address().port}/${page}?render&scale=${scale}${query ? '&' + query : ''}`;
   fs.mkdirSync(framesDir, { recursive: true });
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const pg = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
@@ -48,7 +50,7 @@ const ENC = '-c:v libx264 -profile:v high -crf 17 -preset slow -pix_fmt yuv420p 
     console.log('check frames written to', framesDir);
   } else {
     const total = FPS * DUR, t0 = Date.now();
-    for (let i = 0; i < total; i++) {
+    for (let i = Math.round(from * FPS); i < total; i++) {
       await grab(i / FPS, path.join(framesDir, `f${String(i).padStart(4, '0')}.png`));
       if (i % 30 === 0) console.log(`frame ${i}/${total} (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
     }
@@ -56,6 +58,12 @@ const ENC = '-c:v libx264 -profile:v high -crf 17 -preset slow -pix_fmt yuv420p 
   await browser.close(); server.close();
   if (checkTimes) return;
 
+  if (from > 0) {
+    const seg = path.join(dir, outName);
+    execSync(`ffmpeg -y -loglevel error -framerate ${FPS} -start_number ${Math.round(from * FPS)} -i ${framesDir}/f%04d.png ` +
+      `-vf "scale=1080:1920:flags=lanczos,scale=out_color_matrix=bt709:out_range=tv,format=yuv420p" ${ENC.replace(/-c:a .*?-shortest /, '-an ')} ${seg}`, { stdio: 'inherit' });
+    return console.log(execSync(`ffprobe -v error -show_entries stream=codec_name,width,height,pix_fmt:format=duration -of compact ${seg}`).toString());
+  }
   execSync(`node ${path.join(dir, 'score.js')} ${path.join(framesDir, 'score.wav')}`, { stdio: 'inherit', env: { ...process.env, ...(hits ? { HITS: hits } : {}) } });
   const outFile = path.join(dir, outName);
   execSync(`ffmpeg -y -loglevel error -framerate ${FPS} -i ${framesDir}/f%04d.png -i ${framesDir}/score.wav ` +

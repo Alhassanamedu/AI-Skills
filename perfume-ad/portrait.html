@@ -35,6 +35,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const params = new URLSearchParams(location.search);
+const NOBUST = params.has('nobust');                     // human (Kling) version: end card only, bottle centred, no bust/threads/cards
 const SCALE = Number(params.get('scale') || 2);           // 2 = 4K (2160x3840), 1 = 1080x1920
 const W = 1080 * SCALE, H = 1920 * SCALE, DUR = 10;
 const C = { night: '#07040A', plum: '#2A0F1F', saffron: '#F2A33A', gold: '#E8C27A', cream: '#F6EAD6' };
@@ -140,7 +141,7 @@ let head = null, headBox = null;
 
 // ---------- bottle (same design as the first ad, scaled) ----------
 const bottle = new THREE.Group(); bottle.scale.setScalar(0.45); scene.add(bottle);
-const BOTTLE_X = 0.74;
+const BOTTLE_X = NOBUST ? 0.06 : 0.74;   // nobust: centre the bottle under the end-card camera
 const glassMat = new THREE.MeshPhysicalMaterial({ color: '#fff6ea', roughness: 0.04, transmission: 1, thickness: 0.9, ior: 1.5,
   clearcoat: 1, clearcoatRoughness: 0.03, attenuationColor: '#ffe7c4', attenuationDistance: 3 });
 const bodyM = new THREE.Mesh(new RoundedBoxGeometry(1.6, 2.3, 0.9, 6, 0.16), glassMat); bodyM.position.y = 1.15; bottle.add(bodyM);
@@ -365,6 +366,7 @@ function seek(t) {
   dustGeo.attributes.position.needsUpdate = true;
   dustMat.opacity = 0.85 * (0.75 + 0.25 * Math.sin(t * 3)) * eOut(prog(t, 0.3, 2.0));
 
+  if (NOBUST) { bust.visible = false; threads.forEach(th => th.m.visible = false); cards.forEach(c => c.mesh.visible = false); }
   composer.render();
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); ctx.drawImage(renderer.domElement, 0, 0, W, H);
   typeLayer(t);
