@@ -1,0 +1,402 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Orvelle Portrait</title>
+<style>
+  @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 500; src: url(fonts/cormorant.woff2) format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 300; src: url(fonts/cormorant-italic.woff2) format('woff2'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 300 400; src: url(fonts/inter.woff2) format('woff2'); }
+  html, body { margin: 0; background: #07040A; }
+  #out { display: block; height: 96vh; width: auto; aspect-ratio: 9/16; margin: 2vh auto; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="out" width="2160" height="3840"></canvas>
+<script type="module">
+// ORVELLE — "The Portrait" (Board A), 10s, 4K vertical master (2160x3840).
+// Every frame is worked out from time alone: window.seek(t). Look and rules: MOTION.md.
+// Head: "Infinite, 3D Head Scan" by Lee Perry-Smith, CC BY 3.0 (assets/head/LeePerrySmith_License.txt).
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const params = new URLSearchParams(location.search);
+const SCALE = Number(params.get('scale') || 2);           // 2 = 4K (2160x3840), 1 = 1080x1920
+const W = 1080 * SCALE, H = 1920 * SCALE, DUR = 10;
+const C = { night: '#07040A', plum: '#2A0F1F', saffron: '#F2A33A', gold: '#E8C27A', cream: '#F6EAD6' };
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const env = (t, a, b, c, d) => Math.min(eOut(prog(t, a, b)), 1 - eInOut(prog(t, c, d)));
+let seed = 19;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+// ---------- renderer / scene ----------
+const out = document.getElementById('out');
+out.width = W; out.height = H;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(C.night);
+scene.fog = new THREE.FogExp2(C.night, 0.03);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35;
+const camera = new THREE.PerspectiveCamera(32, W / H, 0.02, 120);
+
+function canvasTex(size, draw, srgb = true) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  draw(cv.getContext('2d'), size);
+  const tx = new THREE.CanvasTexture(cv); if (srgb) tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8; return tx;
+}
+const radial = stops => canvasTex(512, (g, s) => { const r = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2); stops.forEach(([o, c]) => r.addColorStop(o, c)); g.fillStyle = r; g.fillRect(0, 0, s, s); });
+
+const haze = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshBasicMaterial({
+  map: radial([[0, 'rgba(84,30,58,0.95)'], [0.4, 'rgba(42,15,31,0.8)'], [1, 'rgba(42,15,31,0)']]), transparent: true, depthWrite: false, fog: false }));
+haze.position.set(0, 2.2, -10); scene.add(haze);
+const glow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({
+  map: radial([[0, 'rgba(242,163,58,0.35)'], [0.45, 'rgba(242,140,50,0.08)'], [1, 'rgba(242,163,58,0)']]),
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+glow.position.set(0, 2.0, -2.5); scene.add(glow);
+
+// ---------- floor + plinth ----------
+const mirror = new Reflector(new THREE.PlaneGeometry(60, 60), { textureWidth: W / 2, textureHeight: H / 2, color: 0x6a5a60, clipBias: 0.003 });
+mirror.rotation.x = -Math.PI / 2; scene.add(mirror);
+const tint = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: C.night, transparent: true, opacity: 0.8 }));
+tint.rotation.x = -Math.PI / 2; tint.position.y = 0.002; scene.add(tint);
+
+const plinthMat = new THREE.MeshPhysicalMaterial({ color: '#0c0809', roughness: 0.42, metalness: 0.05, clearcoat: 0.5, clearcoatRoughness: 0.2 });
+const plinth = new THREE.Mesh(new RoundedBoxGeometry(2.8, 1.0, 1.5, 4, 0.03), plinthMat);
+plinth.position.y = 0.5; scene.add(plinth);
+const goldMat = new THREE.MeshStandardMaterial({ color: C.gold, metalness: 1, roughness: 0.2 });
+const edge = new THREE.Mesh(new THREE.BoxGeometry(2.81, 0.012, 1.51), goldMat);
+edge.position.y = 0.97; scene.add(edge);
+
+// ---------- marble ----------
+function marbleCanvas(g, s, veinsOnly) {
+  const img = g.createImageData(s, s); let k = 77; const r = () => (k = (k * 16807) % 2147483647) / 2147483647;
+  const waves = Array.from({ length: 6 }, () => [r() * 9 + 2, r() * 9 + 2, r() * 6.28, r() * 0.9 + 0.2]);
+  for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
+    const u = x / s, v = y / s;
+    let n = 0; for (const [a, b, p, amp] of waves) n += Math.sin(u * a + v * b + p + Math.sin(v * a * 1.7 + p) * 1.3) * amp;
+    const vein = Math.pow(1 - Math.abs(Math.sin((u * 1.6 + v * 0.7 + n * 0.3) * Math.PI * 2)), 10);
+    const fine = Math.pow(1 - Math.abs(Math.sin((u * 9 - v * 6 + n * 0.8) * Math.PI)), 40) * 0.5;
+    const i = (y * s + x) * 4;
+    if (veinsOnly) { const m = Math.min(1, vein * 1.2 + fine * 0.5); img.data[i] = 255 * m; img.data[i + 1] = 200 * m; img.data[i + 2] = 110 * m; }
+    else { const base = 232 - n * 2, d = (vein * 22 + fine * 8);
+      img.data[i] = base - d; img.data[i + 1] = base - 4 - d * 1.02; img.data[i + 2] = base - 9 - d * 0.95; }
+    img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+}
+const marbleMap = canvasTex(1024, (g, s) => marbleCanvas(g, s, false));
+const veinMap = canvasTex(1024, (g, s) => marbleCanvas(g, s, true));
+const warmU = { uSpread: { value: -1 }, uWarm: { value: 0 } };
+function marbleMaterial(normalMap) {
+  const m = new THREE.MeshPhysicalMaterial({ color: '#ddd6cf', map: marbleMap, roughness: 0.4, metalness: 0,
+    clearcoat: 0.25, clearcoatRoughness: 0.3, sheen: 0.4, sheenColor: '#ffe9d6', sheenRoughness: 0.6,
+    emissive: '#E8C27A', emissiveMap: veinMap, emissiveIntensity: 2.6 });
+  if (normalMap) { m.normalMap = normalMap; m.normalScale = new THREE.Vector2(0.6, 0.6); }
+  // warmth spreads up from the neck: below uSpread (world y) the stone warms and its veins turn gold
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, warmU);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vW;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vW;\nuniform float uSpread;\nuniform float uWarm;')
+      .replace('#include <color_fragment>', '#include <color_fragment>\nfloat wm = (1.0 - smoothstep(uSpread - 0.25, uSpread, vW.y)) * uWarm;\ndiffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.08, 0.80, 0.56), wm);')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance *= wm;');
+  };
+  return m;
+}
+
+// ---------- bust: socle + scanned head ----------
+const bust = new THREE.Group(); bust.position.set(-0.62, 1.0, 0); scene.add(bust);
+const socleProfile = [[0, 0], [0.42, 0], [0.42, 0.06], [0.36, 0.09], [0.34, 0.16], [0.24, 0.24], [0.2, 0.32], [0.24, 0.36], [0, 0.36]]
+  .map(([x, y]) => new THREE.Vector2(x, y));
+const socle = new THREE.Mesh(new THREE.LatheGeometry(socleProfile, 96), marbleMaterial());
+bust.add(socle);
+let head = null, headBox = null;
+
+// ---------- bottle (same design as the first ad, scaled) ----------
+const bottle = new THREE.Group(); bottle.scale.setScalar(0.45); scene.add(bottle);
+const BOTTLE_X = 0.74;
+const glassMat = new THREE.MeshPhysicalMaterial({ color: '#fff6ea', roughness: 0.04, transmission: 1, thickness: 0.9, ior: 1.5,
+  clearcoat: 1, clearcoatRoughness: 0.03, attenuationColor: '#ffe7c4', attenuationDistance: 3 });
+const bodyM = new THREE.Mesh(new RoundedBoxGeometry(1.6, 2.3, 0.9, 6, 0.16), glassMat); bodyM.position.y = 1.15; bottle.add(bodyM);
+const liquid = new THREE.Mesh(new RoundedBoxGeometry(1.3, 1.45, 0.6, 4, 0.1), new THREE.MeshPhysicalMaterial({
+  color: '#b9561a', roughness: 0.12, emissive: '#4a1804', emissiveIntensity: 0.4, clearcoat: 1, clearcoatRoughness: 0.05 }));
+liquid.position.y = 0.92; bottle.add(liquid);
+const label = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.46), new THREE.MeshPhysicalMaterial({ roughness: 0.45, metalness: 0.2 }));
+label.position.set(0, 1.0, 0.452); bottle.add(label);
+const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.22, 48), glassMat); neck.position.y = 2.4; bottle.add(neck);
+const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.2, 64), goldMat); collar.position.y = 2.56; bottle.add(collar);
+const cap = new THREE.Mesh(new RoundedBoxGeometry(0.86, 0.96, 0.86, 5, 0.05), new THREE.MeshPhysicalMaterial({
+  color: '#0d0709', roughness: 0.32, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.08 })); cap.position.y = 3.14; bottle.add(cap);
+const band = new THREE.Mesh(new RoundedBoxGeometry(0.875, 0.05, 0.875, 2, 0.02), goldMat); band.position.y = 2.74; bottle.add(band);
+function labelTex() {
+  const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512; const g = cv.getContext('2d');
+  g.fillStyle = 'rgba(12,5,9,0.92)'; g.fillRect(0, 0, 1024, 512);
+  g.strokeStyle = C.gold; g.lineWidth = 6; g.strokeRect(22, 22, 980, 468); g.lineWidth = 2; g.strokeRect(40, 40, 944, 432);
+  g.fillStyle = C.gold; g.textAlign = 'center';
+  g.font = '300 170px "Cormorant Garamond"'; g.letterSpacing = '34px'; g.fillText('ORVELLE', 529, 275);
+  g.font = '400 46px Inter'; g.letterSpacing = '18px'; g.fillText('MIDNIGHT SAFFRON', 521, 380);
+  const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8; return tx;
+}
+
+// ---------- lights ----------
+const blade = new THREE.SpotLight(C.saffron, 0, 12, 0.075, 0.35, 1.2);   // the light blade across the face
+scene.add(blade, blade.target);
+const key = new THREE.SpotLight('#ffd9a8', 0, 25, 0.42, 0.6, 1.4); key.position.set(3.2, 5.2, 4.0); key.target.position.set(0, 1.6, 0); scene.add(key, key.target);
+const rim = new THREE.SpotLight(C.gold, 0, 25, 0.6, 0.7, 1.5); rim.position.set(-3, 5, -3.5); rim.target.position.set(-0.3, 1.8, 0); scene.add(rim, rim.target);
+const fill = new THREE.HemisphereLight('#5a2a40', '#07040A', 0.0); scene.add(fill);
+
+// ---------- saffron threads: grow from the cap and wrap the neck ----------
+const threads = [];
+function buildThreads() {
+  const capTop = new THREE.Vector3(BOTTLE_X, 1.0 + 3.62 * 0.45, 0);
+  const neckY = headBox.min.y + 0.34, neckC = new THREE.Vector3(bust.position.x, neckY, 0.02);
+  for (let i = 0; i < 7; i++) {
+    const pts = [capTop.clone().add(new THREE.Vector3((rnd() - .5) * 0.08, 0.02, (rnd() - .5) * 0.08))];
+    pts.push(new THREE.Vector3(lerp(capTop.x, neckC.x, 0.35), capTop.y + 0.08 + rnd() * 0.1, 0.2 + rnd() * 0.12));
+    pts.push(new THREE.Vector3(lerp(capTop.x, neckC.x, 0.72), neckY + 0.1 + rnd() * 0.08, 0.3));
+    const turns = 1.6 + rnd() * 0.5, R = 0.17 + i * 0.01, ph = -0.2 + rnd() * 0.5, y0 = neckY + 0.12 - i * 0.025;
+    for (let k = 0; k <= 30; k++) {
+      const a = ph + (k / 30) * turns * Math.PI * 2, y = y0 - (k / 30) * (0.3 + rnd() * 0.02);
+      pts.push(new THREE.Vector3(neckC.x + Math.sin(a) * R * (1 + k / 60), y, neckC.z + Math.cos(a) * R * 0.85 * (1 + k / 60)));
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const geo = new THREE.TubeGeometry(curve, 400, 0.007 + rnd() * 0.004, 6);
+    const mat = new THREE.MeshStandardMaterial({ color: i % 3 ? '#c2361f' : C.saffron, roughness: 0.4, emissive: i % 3 ? '#5a0e04' : '#6a3a06', emissiveIntensity: 0.9 });
+    const m = new THREE.Mesh(geo, mat); geo.setDrawRange(0, 0); scene.add(m);
+    threads.push({ m, t0: 4.0 + i * 0.12, count: geo.index.count });
+  }
+}
+
+// ---------- note cards ----------
+function cardTex(word, sub, motif) {
+  const cv = document.createElement('canvas'); cv.width = 640; cv.height = 900; const g = cv.getContext('2d');
+  g.fillStyle = 'rgba(16,7,12,0.9)'; g.fillRect(0, 0, 640, 900);
+  g.save(); g.beginPath(); g.rect(40, 40, 560, 560); g.clip();
+  const bg = g.createRadialGradient(320, 320, 20, 320, 320, 420); bg.addColorStop(0, '#3a1626'); bg.addColorStop(1, '#0c050a'); g.fillStyle = bg; g.fillRect(40, 40, 560, 560);
+  let s = word.length * 977; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  if (motif === 'threads') for (let i = 0; i < 46; i++) { const x = 80 + r() * 480, y = 80 + r() * 480, a = r() * 6.28, L = 60 + r() * 90;
+    g.strokeStyle = i % 3 ? '#c2361f' : '#f2a33a'; g.lineWidth = 3 + r() * 4; g.lineCap = 'round'; g.beginPath(); g.moveTo(x, y);
+    g.quadraticCurveTo(x + Math.cos(a + .6) * L * .6, y + Math.sin(a + .6) * L * .6, x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke(); }
+  else if (motif === 'amber') for (let i = 0; i < 7; i++) { const x = 120 + r() * 400, y = 120 + r() * 400, rad = 40 + r() * 110;
+    const gg = g.createRadialGradient(x - rad * .3, y - rad * .3, 2, x, y, rad); gg.addColorStop(0, '#ffd38a'); gg.addColorStop(.5, '#e08a2a'); gg.addColorStop(1, 'rgba(120,50,10,0)');
+    g.fillStyle = gg; g.beginPath(); g.arc(x, y, rad, 0, 6.283); g.fill(); }
+  else for (let i = 0; i < 60; i++) { g.strokeStyle = `rgba(${140 + r() * 60},${80 + r() * 40},${40 + r() * 20},${.35 + r() * .5})`; g.lineWidth = 1 + r() * 4; g.beginPath();
+    const y0 = 40 + i * 9.5; for (let x = 40; x <= 600; x += 10) g.lineTo(x, y0 + Math.sin(x / 70 + i * .3) * 14 + Math.sin(x / 23 + i) * 3); g.stroke(); }
+  g.restore();
+  g.strokeStyle = C.gold; g.lineWidth = 3; g.strokeRect(14, 14, 612, 872); g.textAlign = 'center';
+  g.fillStyle = C.cream; g.font = '500 112px "Cormorant Garamond"'; g.letterSpacing = '6px'; g.fillText(word, 323, 735);
+  g.fillStyle = C.gold; g.font = '400 42px Inter'; g.letterSpacing = '8px'; g.fillText(sub, 324, 830);
+  const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8; return tx;
+}
+const cards = [
+  // screen anchor (1080x1920 px) + depth from the lens: cards fly in from near the camera and settle in depth
+  { word: 'SAFFRON', sub: 'TOP NOTE', motif: 'threads', t0: 4.6, at: [470, 370], from: [380, 180] },
+  { word: 'AMBER', sub: 'HEART NOTE', motif: 'amber', t0: 5.1, at: [835, 1245], from: [1000, 1420] },
+  { word: 'OUD', sub: 'BASE NOTE', motif: 'wood', t0: 5.6, at: [245, 1255], from: [60, 1440] },
+].map(c => { const m = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.59), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, toneMapped: false, fog: false, side: THREE.DoubleSide }));
+  scene.add(m); return { ...c, mesh: m }; });
+
+// ---------- gold dust ----------
+const N = 900, dustPos = new Float32Array(N * 3), dust = [];
+for (let i = 0; i < N; i++) dust.push({ x: (rnd() - .5) * 10, y: rnd() * 5, z: -5 + rnd() * 10, vx: (rnd() - .5) * .06, vy: .02 + rnd() * .07, ph: rnd() * 6.28 });
+const dustGeo = new THREE.BufferGeometry(); dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+const dustMat = new THREE.PointsMaterial({ size: 0.022, map: radial([[0, 'rgba(255,243,214,1)'], [0.3, 'rgba(232,194,122,0.8)'], [1, 'rgba(232,194,122,0)']]),
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.85 });
+scene.add(new THREE.Points(dustGeo, dustMat));
+
+// ---------- post: focus pulls + subtle bloom ----------
+const composer = new EffectComposer(renderer); composer.setSize(W, H);
+composer.addPass(new RenderPass(scene, camera));
+const bokeh = new BokehPass(scene, camera, { focus: 1.0, aperture: 0.0025, maxblur: 0.006 });
+composer.addPass(bokeh);
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(W / 2, H / 2), 0.22, 0.5, 0.9));
+composer.addPass(new OutputPass());
+
+// ---------- camera: one continuous tracked move ----------
+// keyframes: [time, position, look-at target]. The target follows the subject: eye -> bust -> bottle -> two-shot.
+let KEYS = null, posCurve, tgtCurve;
+function buildCamera() {
+  const eye = new THREE.Vector3(headBox.getCenter(new THREE.Vector3()).x + 0.08, headBox.min.y + (headBox.max.y - headBox.min.y) * 0.62, headBox.max.z - 0.12);
+  KEYS = [
+    [0.0, [eye.x + 0.38, eye.y + 0.04, eye.z + 0.62], [eye.x - 0.02, eye.y - 0.02, eye.z - 0.1]],
+    [2.0, [eye.x + 0.62, eye.y - 0.1, eye.z + 0.95], [eye.x - 0.04, eye.y - 0.14, eye.z - 0.2]],
+    [3.6, [1.7, 2.15, 3.6], [-0.2, 1.75, 0]],
+    [5.6, [3.1, 2.45, 5.0], [BOTTLE_X - 0.3, 1.85, 0]],
+    [7.4, [0.9, 2.15, 7.8], [0.1, 1.2, 0]],
+    [9.0, [0.06, 2.0, 9.6], [0.06, 0.9, 0]],
+    [10.0, [0.05, 1.98, 9.35], [0.06, 0.9, 0]],
+  ];
+  posCurve = new THREE.CatmullRomCurve3(KEYS.map(k => new THREE.Vector3(...k[1])), false, 'centripetal');
+  tgtCurve = new THREE.CatmullRomCurve3(KEYS.map(k => new THREE.Vector3(...k[2])), false, 'centripetal');
+}
+function camU(t) { // time -> curve parameter, piecewise through the keyframes, eased at both ends
+  const te = DUR * (0.5 - 0.5 * Math.cos(Math.PI * clamp(t / DUR))) * 0.35 + t * 0.65;
+  for (let i = 0; i < KEYS.length - 1; i++) if (te <= KEYS[i + 1][0]) return (i + prog(te, KEYS[i][0], KEYS[i + 1][0])) / (KEYS.length - 1);
+  return 1;
+}
+
+// ---------- 2D type layer (authored in 1080x1920 units, drawn at SCALE) ----------
+const ctx = out.getContext('2d');
+function text(str, x, y, font, spacing, color, alpha, blur = 0) {
+  if (alpha <= 0.001) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = font; ctx.letterSpacing = spacing + 'px'; ctx.textAlign = 'center'; ctx.fillStyle = color;
+  if (blur > 0.3) ctx.filter = `blur(${blur * SCALE}px)`;
+  ctx.fillText(str, x + spacing / 2, y); ctx.restore();
+}
+function typeLayer(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  const shade = eInOut(prog(t, 6.9, 8.0));
+  let g = ctx.createLinearGradient(0, 1040, 0, 1920);
+  g.addColorStop(0, 'rgba(7,4,10,0)'); g.addColorStop(0.1, `rgba(7,4,10,${0.8 * shade})`); g.addColorStop(1, `rgba(7,4,10,${0.96 * shade})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 1040, 1080, 880);
+
+  const hb = env(t, 0.3, 1.1, 2.5, 3.0);
+  if (hb > 0) { const hg = ctx.createLinearGradient(0, 1040, 0, 1340); hg.addColorStop(0, 'rgba(7,4,10,0)'); hg.addColorStop(0.5, `rgba(7,4,10,${0.6 * hb})`); hg.addColorStop(1, 'rgba(7,4,10,0)'); ctx.fillStyle = hg; ctx.fillRect(0, 1040, 1080, 300); }
+  const a1 = env(t, 0.4, 1.2, 2.5, 3.0);
+  text('Some nights', 540, 1190 + (1 - eOut(prog(t, 0.4, 1.2))) * 24, 'italic 300 120px "Cormorant Garamond"', lerp(14, 2, eOut(prog(t, 0.4, 1.6))), C.cream, a1, (1 - a1) * 8);
+  const a2 = env(t, 0.9, 1.7, 2.5, 3.0);
+  text('ARE MADE TO BE REMEMBERED', 540, 1270 + (1 - eOut(prog(t, 0.9, 1.7))) * 24, '300 26px Inter', lerp(16, 9, eOut(prog(t, 0.9, 2.0))), C.gold, a2, (1 - a2) * 6);
+
+  if (t > 7.2) {
+    const name = 'ORVELLE';
+    ctx.save(); ctx.font = '300 130px "Cormorant Garamond"'; ctx.letterSpacing = '0px'; ctx.textAlign = 'left';
+    const sp = lerp(44, 28, eOut(prog(t, 7.3, 8.8)));
+    const ws = [...name].map(ch => ctx.measureText(ch).width);
+    let x = 540 - (ws.reduce((a, b) => a + b, 0) + sp * (name.length - 1)) / 2;
+    [...name].forEach((ch, i) => {
+      const k = eOut(prog(t, 7.3 + i * 0.07, 8.1 + i * 0.07));
+      if (k > 0) { ctx.save(); ctx.globalAlpha = k; ctx.fillStyle = C.gold; if (k < 1) ctx.filter = `blur(${(1 - k) * 8 * SCALE}px)`; ctx.fillText(ch, x, 1150 + (1 - k) * 24); ctx.restore(); }
+      x += ws[i] + sp;
+    });
+    ctx.restore();
+    const dk = eInOut(prog(t, 8.0, 8.7));
+    ctx.fillStyle = C.gold; ctx.globalAlpha = 0.85; ctx.fillRect(540 - 100 * dk, 1192, 200 * dk, 1.5); ctx.globalAlpha = 1;
+    const b = eOut(prog(t, 8.1, 8.9)); text('MIDNIGHT SAFFRON', 540, 1250 + (1 - b) * 24, '400 28px Inter', 12, C.cream, b);
+    const c = eOut(prog(t, 8.5, 9.3)); text('Eau de Parfum', 540, 1302 + (1 - c) * 24, 'italic 300 42px "Cormorant Garamond"', 3, C.gold, c);
+    const d = eOut(prog(t, 8.9, 9.5)); text('DISCOVER THE NIGHT', 540, 1392 + (1 - d) * 24, '300 22px Inter', 10, 'rgba(246,234,214,0.8)', d);
+  }
+  g = ctx.createRadialGradient(540, 860, 520, 540, 960, 1250); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.6)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
+  const fb = 1 - eOut(prog(t, 0, 0.6)); if (fb > 0) { ctx.fillStyle = `rgba(0,0,0,${fb})`; ctx.fillRect(0, 0, 1080, 1920); }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// ---------- seek ----------
+const tmpT = new THREE.Vector3(), bottleCenter = new THREE.Vector3(), camFwd = new THREE.Vector3(), ray = new THREE.Vector3();
+function seek(t) {
+  t = clamp(t, 0, DUR);
+  const u = camU(t);
+  camera.position.copy(posCurve.getPoint(u));
+  tgtCurve.getPoint(u, tmpT); camera.lookAt(tmpT); camera.updateMatrixWorld();
+
+  // bottle rises up through the plinth top into the beam (3.0–4.4s)
+  const rise = eOut(prog(t, 3.0, 4.4));
+  bottle.position.set(BOTTLE_X, 1.0 - (1 - rise) * 1.75, 0);
+  bottle.rotation.y = lerp(-0.5, -0.12, eInOut(prog(t, 3.0, 9.0)));
+  bottle.visible = rise > 0;
+  bottleCenter.set(BOTTLE_X, 1.0 + 0.8, 0);
+
+  // focus pulls: face -> bust -> bottle -> two-shot
+  const focus = t < 3.0 ? camera.position.distanceTo(tmpT) : lerp(camera.position.distanceTo(tmpT), camera.position.distanceTo(bottleCenter), eInOut(prog(t, 3.2, 4.6)));
+  bokeh.uniforms.focus.value = focus;
+  bokeh.uniforms.aperture.value = lerp(0.006, 0.0012, eInOut(prog(t, 1.6, 4.0))) * (1 - 0.7 * eInOut(prog(t, 7.0, 8.5)));
+
+  // lights: a saffron blade slides across the face, then the room comes up
+  if (head) {
+    const e = KEYS[0][2], sw = eInOut(prog(t, 0.1, 2.6));
+    blade.position.set(e[0] + 1.6, e[1] + 0.9, e[2] + 1.2);
+    blade.target.position.set(e[0] + lerp(0.35, -0.45, sw), e[1] + lerp(0.25, -0.35, sw), e[2] - 0.1);
+    blade.intensity = 26 * env(t, 0.0, 0.5, 3.0, 4.2);
+  }
+  key.intensity = 42 * eOut(prog(t, 1.8, 3.6));
+  key.position.set(lerp(3.8, 2.4, eInOut(prog(t, 3.4, 6))), 5.2, 4.0);
+  rim.intensity = 32 * eOut(prog(t, 1.2, 3.0));
+  fill.intensity = 0.45 * eOut(prog(t, 2.0, 4.0));
+  scene.environmentIntensity = lerp(0.12, 0.55, eOut(prog(t, 1.8, 4.0)));
+  glow.material.opacity = eOut(prog(t, 3.0, 5.0));
+
+  // threads grow along their paths and wrap the neck (4.0–6.8s)
+  for (const th of threads) {
+    const k = eInOut(prog(t, th.t0, th.t0 + 2.2));
+    th.m.geometry.setDrawRange(0, Math.floor(th.count * k / 6) * 6);
+    th.m.visible = k > 0;
+  }
+  // the stone warms from the neck up (6.0–8.2s)
+  if (headBox) { warmU.uWarm.value = eOut(prog(t, 5.9, 6.6)); warmU.uSpread.value = lerp(headBox.min.y - 0.4, headBox.max.y + 0.3, eInOut(prog(t, 6.0, 8.2))); }
+
+  for (const c of cards) {
+    const kin = eOut(prog(t, c.t0, c.t0 + 0.9)), kout = eInOut(prog(t, 6.6, 7.3));
+    const sx = lerp(c.from[0], c.at[0], kin) + (c.at[0] > 540 ? 1 : -1) * kout * 260, sy = lerp(c.from[1], c.at[1], kin) + Math.sin(t * 0.8 + c.t0) * 6;
+    const depth = lerp(2.0, 5.0, kin) + kout * 1.4;
+    camFwd.set(0, 0, -1).applyQuaternion(camera.quaternion);
+    ray.set(sx / 540 - 1, 1 - sy / 960, 0.5).unproject(camera).sub(camera.position).normalize();
+    c.mesh.position.copy(camera.position).addScaledVector(ray, depth / ray.dot(camFwd));
+    c.mesh.quaternion.copy(camera.quaternion);
+    c.mesh.material.opacity = Math.min(kin, 1 - kout); c.mesh.visible = c.mesh.material.opacity > 0.002;
+  }
+  for (let i = 0; i < N; i++) { const p = dust[i];
+    dustPos[i * 3] = p.x + p.vx * t + Math.sin(t * 0.9 + p.ph) * 0.05; dustPos[i * 3 + 1] = ((p.y + p.vy * t) % 5 + 5) % 5; dustPos[i * 3 + 2] = p.z; }
+  dustGeo.attributes.position.needsUpdate = true;
+  dustMat.opacity = 0.85 * (0.75 + 0.25 * Math.sin(t * 3)) * eOut(prog(t, 0.3, 2.0));
+
+  composer.render();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); ctx.drawImage(renderer.domElement, 0, 0, W, H);
+  typeLayer(t);
+}
+window.seek = seek; window.DUR = DUR;
+
+window.ready = (async () => {
+  await document.fonts.load('300 100px "Cormorant Garamond"');
+  await Promise.all([document.fonts.load('italic 300 100px "Cormorant Garamond"'), document.fonts.load('500 100px "Cormorant Garamond"'),
+    document.fonts.load('300 20px Inter'), document.fonts.load('400 20px Inter')]);
+  const normal = await new THREE.TextureLoader().loadAsync('assets/head/Infinite-Level_02_Tangent_SmoothUV.jpg');
+  const gltf = await new GLTFLoader().loadAsync('assets/head/LeePerrySmith.glb');
+  head = gltf.scene.children.find(o => o.isMesh) || gltf.scene.getObjectByProperty('isMesh', true);
+  head.material = marbleMaterial(normal);
+  head.geometry.computeBoundingBox();
+  const bb = head.geometry.boundingBox, size = bb.getSize(new THREE.Vector3());
+  const s = 1.22 / size.y; head.scale.setScalar(s);
+  head.position.set(-((bb.min.x + bb.max.x) / 2) * s, 0.36 - bb.min.y * s, -((bb.min.z + bb.max.z) / 2) * s);
+  head.rotation.y = 0;
+  const pivot = new THREE.Group(); pivot.rotation.y = 0.32; pivot.add(head); bust.add(pivot);
+  scene.updateMatrixWorld(true);
+  headBox = new THREE.Box3().setFromObject(head);
+  label.material.map = labelTex(); label.material.needsUpdate = true;
+  cards.forEach(c => { c.mesh.material.map = cardTex(c.word, c.sub, c.motif); c.mesh.material.needsUpdate = true; });
+  buildThreads(); buildCamera();
+  seek(0); return true;
+})();
+
+if (!params.has('render')) window.ready.then(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { seek(9.6); return; }
+  const t0 = performance.now(); (function loop() { seek(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); })();
+});
+</script>
+</body>
+</html>

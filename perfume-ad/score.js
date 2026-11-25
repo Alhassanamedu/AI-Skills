@@ -30,11 +30,10 @@ function hit(at, gain, bell) {
     L[s0 + j] += gain * (thump + b); R[s0 + j] += gain * (thump + b * 0.85);
   }
 }
-hit(0.5, 0.8, 587.33);   // hook lands
-hit(3.7, 0.55, 880.0);   // saffron card
-hit(4.3, 0.45, 783.99);  // amber card
-hit(4.9, 0.45, 659.25);  // oud card
-hit(7.3, 1.0, 587.33);   // wordmark
+// beat times: default is the first ad; HITS="0.4,3.0,..." overrides (first and last hits are the strongest)
+const bells = [587.33, 880.0, 783.99, 659.25, 739.99, 698.46, 587.33];
+const times = process.env.HITS ? process.env.HITS.split(',').map(Number) : [0.5, 3.7, 4.3, 4.9, 7.3];
+times.forEach((t, i) => hit(t, i === 0 ? 0.8 : i === times.length - 1 ? 1.0 : 0.5, i === times.length - 1 ? 587.33 : bells[i % bells.length]));
 
 // 3. Lift under the last line: rising filtered shimmer 7.6–10s
 for (let i = Math.floor(7.6 * SR); i < N; i++) {
