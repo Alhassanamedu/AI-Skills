@@ -1,0 +1,245 @@
+<title>Orvelle 20s Storyboards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one dark gallery wall; a comparison strip up top, then three boards, each a filmstrip of timed frames. */
+:root {
+  --night: #07040A; --panel: #130a12; --line: #3a2430; --plum: #2A0F1F;
+  --saffron: #F2A33A; --gold: #E8C27A; --cream: #F6EAD6; --muted: #b9a79a;
+  --ok: #8fc79a; --warn: #f2c14e; --risk: #e8846b;
+  --display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--night); color: var(--cream); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+.eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(40px, 7vw, 72px); line-height: 1; letter-spacing: .01em; }
+h2 { font-size: clamp(30px, 4.5vw, 44px); line-height: 1.05; }
+h3 { font-size: 22px; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+header { display: grid; gap: 14px; }
+.specs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip b { color: var(--cream); font-weight: 500; }
+
+/* comparison */
+.compare { overflow-x: auto; border-top: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; min-width: 720px; }
+th, td { text-align: left; vertical-align: top; padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+th { font-weight: 500; color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; width: 16%; }
+td h3 { font-size: 24px; color: var(--cream); }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; letter-spacing: .04em; }
+.pill.low { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.pill.med { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.pill.high { background: color-mix(in srgb, var(--risk) 18%, transparent); color: var(--risk); }
+.rec { color: var(--saffron); font-weight: 600; }
+
+/* boards */
+.board { display: grid; gap: 20px; }
+.board-head { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: end; border-top: 1px solid var(--gold); padding-top: 22px; }
+.board-head .logline { grid-column: 1 / -1; font-family: var(--display); font-style: italic; font-size: 21px; color: var(--muted); }
+.letter { font-family: var(--display); font-size: 64px; line-height: .8; color: var(--saffron); }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+.frame { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.shot { aspect-ratio: 9 / 16; max-width: 100%; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); position: relative; overflow: hidden; }
+.shot canvas { width: 100%; height: 100%; display: block; }
+.tc { position: absolute; left: 8px; top: 8px; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--gold); background: rgba(7,4,10,.7); padding: 1px 6px; border-radius: 3px; }
+.frame h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.frame p { font-size: 13px; color: var(--muted); }
+.cam { font-size: 12px; color: var(--gold); }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 32px; font-size: 14px; }
+.notes div { display: grid; gap: 4px; min-width: 0; }
+.notes b { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+
+.qs { display: grid; gap: 14px; border-top: 1px solid var(--line); padding-top: 24px; }
+.qs ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 75ch; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">ORVELLE · Midnight Saffron · draft 2026-11-25</span>
+    <h1>Three storyboards for the 20-second film</h1>
+    <p class="muted">Each board extends the first ad (same bottle, palette, notes and end card) with a human subject, a 3D camera that tracks the objects, and a 4K master. Pick one; the build follows that board.</p>
+    <div class="specs">
+      <span class="chip"><b>20s</b> · 600 frames at 30fps</span>
+      <span class="chip"><b>2160 × 3840</b> 4K vertical master</span>
+      <span class="chip"><b>1080 × 1920</b> Reel/TikTok delivery cut</span>
+      <span class="chip">Text in Reel safe zone, y 360–1420</span>
+      <span class="chip">Coded score: bed, hit per beat, lift on end card</span>
+    </div>
+  </header>
+
+  <section class="compare" aria-label="Comparison">
+    <table>
+      <tr><th></th><td><h3>A · The Portrait</h3></td><td><h3>B · Inside the Bottle</h3></td><td><h3>C · The Night Walk</h3></td></tr>
+      <tr><th>Human subject</th><td>A scanned human head rendered as a marble bust</td><td>A dancer formed from thousands of gold particles</td><td>A woman walking a rain-wet street, as a backlit silhouette</td></tr>
+      <tr><th>Camera tracking</th><td>Orbit locked on the bottle, then a two-shot; focus pulls between face and glass</td><td>Fly-through into the liquid, orbit tracking the dancer</td><td>Side-tracking dolly following her walk; the bottle overtakes her in parallax</td></tr>
+      <tr><th>Built in code?</th><td>Yes, fully</td><td>Yes, fully</td><td>Silhouette version yes; a photoreal person needs Kling, which can't connect right now</td></tr>
+      <tr><th>Risk</th><td><span class="pill low">Low</span> A still bust holds up up close</td><td><span class="pill med">Medium</span> Particle poses must read as human</td><td><span class="pill high">High</span> A walking human in code looks stiff close up</td></tr>
+      <tr><th>My pick</th><td class="rec">Recommended</td><td>Strong second</td><td>Only with real footage</td></tr>
+    </table>
+  </section>
+
+  <!-- BOARD A -->
+  <section class="board" id="a">
+    <div class="board-head">
+      <div><span class="eyebrow">Board A</span><h2>The Portrait</h2></div>
+      <span class="letter" aria-hidden="true">A</span>
+      <p class="logline">The scent dresses a marble face: saffron threads leave the bottle and wrap the sculpture until the stone turns warm.</p>
+    </div>
+    <div class="frames">
+      <div class="frame"><div class="shot"><canvas data-scene="a1"></canvas><span class="tc">00:00–03</span></div><h4>Light finds a face</h4><p>Dark gallery. A saffron light blade slides across a marble eye and cheekbone. "Some nights" lands.</p><span class="cam">Macro slider tracking the light</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="a2"></canvas><span class="tc">00:03–06</span></div><h4>The bust revealed</h4><p>Camera tracks back along the jawline to a full bust on a black plinth, dust in the beam. "are made to be remembered".</p><span class="cam">Pull-back, focus racks face to plinth</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="a3"></canvas><span class="tc">00:06–09</span></div><h4>The bottle arrives</h4><p>The bottle rises into the beam beside the bust. A light sweep crosses the glass.</p><span class="cam">Orbit begins, target-locked on the bottle</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="a4"></canvas><span class="tc">00:09–14</span></div><h4>Threads wrap the neck</h4><p>Saffron threads stream from the cap and spiral around the bust's neck and shoulders. SAFFRON, AMBER, OUD cards pass in depth.</p><span class="cam">120° orbit, tracking the thread tips</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="a5"></canvas><span class="tc">00:14–17</span></div><h4>Stone turns warm</h4><p>Gold veins spread through the marble from where the threads touched. Bust and bottle settle in a two-shot.</p><span class="cam">Orbit eases out to frontal</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="end"></canvas><span class="tc">00:17–20</span></div><h4>End card</h4><p>ORVELLE letter by letter, Midnight Saffron, Eau de Parfum, Discover the night. Holds 3s.</p><span class="cam">Locked off, slow push</span></div>
+    </div>
+    <div class="notes">
+      <div><b>Why it works</b><span>A face carries emotion without animation. Marble suits the premium tone and keeps any realism problem away.</span></div>
+      <div><b>Asset</b><span>The Lee Perry-Smith head scan used in the Three.js examples (CC BY 3.0, credit required). Licence to be confirmed before the build.</span></div>
+      <div><b>Skills</b><span>brand-intake (existing files), motion-brief-writer, title-sequence-3d, launch-video beat rules, reel-export.</span></div>
+    </div>
+  </section>
+
+  <!-- BOARD B -->
+  <section class="board" id="b">
+    <div class="board-head">
+      <div><span class="eyebrow">Board B</span><h2>Inside the Bottle</h2></div>
+      <span class="letter" aria-hidden="true">B</span>
+      <p class="logline">We fall into the amber and find someone dancing there, made of the same gold dust as the night.</p>
+    </div>
+    <div class="frames">
+      <div class="frame"><div class="shot"><canvas data-scene="b1"></canvas><span class="tc">00:00–03</span></div><h4>Into the glass</h4><p>The bottle on the mirror floor, as in the first ad. The camera pushes straight through the glass; refraction flare. "Some nights".</p><span class="cam">Dolly-in, locked to the label</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="b2"></canvas><span class="tc">00:03–07</span></div><h4>An amber world</h4><p>A liquid sky, saffron threads drifting like slow comets, dunes of light on the horizon.</p><span class="cam">Forward fly-through</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="b3"></canvas><span class="tc">00:07–11</span></div><h4>The dancer forms</h4><p>Drifting dust gathers into a human figure that turns and raises one arm.</p><span class="cam">Orbit tracking the figure's hand</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="b4"></canvas><span class="tc">00:11–14</span></div><h4>Three places, three notes</h4><p>She passes a saffron field, amber pillars and an oud forest of dark vertical grain, each named as she passes.</p><span class="cam">Lateral tracking alongside her</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="b5"></canvas><span class="tc">00:14–17</span></div><h4>Back out</h4><p>She dissolves into dust that streams past the lens. The camera pulls back out through the glass to the bottle on a vanity.</p><span class="cam">Pull-back through the glass</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="end"></canvas><span class="tc">00:17–20</span></div><h4>End card</h4><p>Same end card as A. Holds 3s.</p><span class="cam">Locked off, slow push</span></div>
+    </div>
+    <div class="notes">
+      <div><b>Why it works</b><span>The most imaginative of the three. The particle figure is on-brand and sidesteps realism entirely.</span></div>
+      <div><b>Risk</b><span>The poses must read clearly as a person within half a second. I'd test the figure first, before building the world around her.</span></div>
+      <div><b>Skills</b><span>motion-brief-writer, title-sequence-3d, milestone-reveal (particles pulling into a shape), reel-export.</span></div>
+    </div>
+  </section>
+
+  <!-- BOARD C -->
+  <section class="board" id="c">
+    <div class="board-head">
+      <div><span class="eyebrow">Board C</span><h2>The Night Walk</h2></div>
+      <span class="letter" aria-hidden="true">C</span>
+      <p class="logline">A woman walks home through the rain; the scent slips out of a shop window and follows her.</p>
+    </div>
+    <div class="frames">
+      <div class="frame"><div class="shot"><canvas data-scene="c1"></canvas><span class="tc">00:00–03</span></div><h4>Rain, a silhouette</h4><p>A wet street at night, warm reflections. A woman walks, rim-lit from behind. "Some nights".</p><span class="cam">Low side-track matching her pace</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="c2"></canvas><span class="tc">00:03–07</span></div><h4>The window</h4><p>She passes a boutique; the bottle glows behind the glass and slides past her in parallax.</p><span class="cam">Track holds speed; focus racks to the bottle</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="c3"></canvas><span class="tc">00:07–11</span></div><h4>It follows her</h4><p>Gold saffron threads drift out of the window and curl after her. SAFFRON, AMBER, OUD glow as shop signs.</p><span class="cam">Track continues, threads in the foreground</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="c4"></canvas><span class="tc">00:11–15</span></div><h4>Under the streetlight</h4><p>She stops and turns. The threads gather at her raised wrist; a saffron glow blooms across her silhouette.</p><span class="cam">Slow arc around her, tracking the wrist</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="c5"></canvas><span class="tc">00:15–17</span></div><h4>Match to the bottle</h4><p>The camera cranes up; the wet street's reflection becomes the bottle's reflection on a mirror floor.</p><span class="cam">Crane up, match transition</span></div>
+      <div class="frame"><div class="shot"><canvas data-scene="end"></canvas><span class="tc">00:17–20</span></div><h4>End card</h4><p>Same end card as A. Holds 3s.</p><span class="cam">Locked off, slow push</span></div>
+    </div>
+    <div class="notes">
+      <div><b>Why it works</b><span>The most cinematic, and the classic perfume-ad story. It's also the only board where camera tracking in the VFX sense applies: 3D threads matched into filmed footage.</span></div>
+      <div><b>Risk</b><span>A walking person built in code looks like a mannequin up close. Photoreal needs Kling to generate the footage, and Kling's connection is currently blocked by this environment's network.</span></div>
+      <div><b>Skills</b><span>kling-ai-generate-video (if connected), title-sequence-3d (its night-street world), reference-to-motion, reel-export.</span></div>
+    </div>
+  </section>
+
+  <section class="qs">
+    <span class="eyebrow">Before the build</span>
+    <h2>Two things to settle</h2>
+    <ol>
+      <li><b>What "4K camera tracking" means here.</b> I read it as a 4K render where the virtual camera locks onto and follows the moving objects (orbit, follow, focus pulls). True camera tracking, where CG is matched into filmed footage, needs footage, so it only applies to Board C with real or generated video.</li>
+      <li><b>Render time.</b> The 10s version took about 5½ minutes at 1080p here. 4K has four times the pixels and the film is twice as long, so expect roughly 45–90 minutes per full render (estimate). I'll check still frames at 4K before committing to a full pass.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+// Thumbnail sketches: small canvas drawings of each frame's composition (not final renders).
+const P = { night:'#07040A', plum:'#2A0F1F', saffron:'#F2A33A', gold:'#E8C27A', cream:'#F6EAD6', marble:'#d9d2cc' };
+function bottle(g, x, y, s, glow = true) {
+  if (glow) { const r = g.createRadialGradient(x, y - 40*s, 0, x, y - 40*s, 110*s); r.addColorStop(0,'rgba(242,163,58,.45)'); r.addColorStop(1,'rgba(242,163,58,0)'); g.fillStyle = r; g.fillRect(x-120*s, y-160*s, 240*s, 240*s); }
+  g.fillStyle = 'rgba(246,234,214,.18)'; g.fillRect(x-24*s, y-62*s, 48*s, 62*s);
+  g.fillStyle = '#c9661f'; g.fillRect(x-20*s, y-46*s, 40*s, 42*s);
+  g.fillStyle = P.gold; g.fillRect(x-9*s, y-70*s, 18*s, 7*s);
+  g.fillStyle = '#120a0c'; g.fillRect(x-11*s, y-92*s, 22*s, 22*s);
+  g.strokeStyle = P.gold; g.lineWidth = 1; g.strokeRect(x-11*s, y-92*s, 22*s, 22*s);
+}
+function head(g, x, y, s, warm = 0) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  const col = warm ? `rgb(${217+20*warm},${200-10*warm},${170-50*warm})` : P.marble;
+  g.fillStyle = col;
+  g.beginPath(); g.ellipse(0, 0, 34, 44, 0, 0, 6.283); g.fill();          // head
+  g.beginPath(); g.moveTo(-16, 34); g.lineTo(16, 34); g.lineTo(20, 70); g.lineTo(-20, 70); g.fill(); // neck
+  g.beginPath(); g.ellipse(0, 92, 72, 28, 0, Math.PI, 0); g.fill(); g.fillRect(-72, 92, 144, 26); // shoulders
+  g.fillStyle = 'rgba(7,4,10,.35)'; g.beginPath(); g.ellipse(12, 0, 20, 44, 0, -1.3, 1.3); g.fill(); // shade
+  if (warm) { g.strokeStyle = `rgba(232,194,122,${warm})`; g.lineWidth = 1.2; for (let i=0;i<5;i++){ g.beginPath(); g.moveTo(-30+i*12, 100); g.quadraticCurveTo(-20+i*10, 60, -10+i*6, 20+i*4); g.stroke(); } }
+  g.restore();
+}
+function figurePath(arm) {
+  const p = new Path2D();
+  p.arc(0, -78, 9, 0, 6.283);
+  p.moveTo(-10,-66); p.lineTo(10,-66); p.lineTo(13,-20); p.lineTo(22,30); p.lineTo(4,30); p.lineTo(0,-8);
+  p.lineTo(-4,30); p.lineTo(-22,30); p.lineTo(-13,-20); p.closePath();
+  if (arm) { p.moveTo(8,-64); p.lineTo(32,-106); p.lineTo(38,-102); p.lineTo(13,-56); p.closePath(); }
+  return p;
+}
+function figure(g, x, y, s, color, dots) {
+  const path = figurePath(dots);
+  if (!dots) { g.save(); g.translate(x, y); g.scale(s, s); g.fillStyle = color; g.fill(path); g.restore(); return; }
+  // particle figure: sample points inside the silhouette on an offscreen canvas
+  const off = document.createElement('canvas'); off.width = 100; off.height = 150;
+  const o = off.getContext('2d'); o.translate(50, 115);
+  let k = 5; const r = () => (k = (k * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 1400; i++) {
+    const px = (r() - .5) * 90, py = -112 + r() * 145;
+    if (o.isPointInPath(path, px + 50, py + 115)) { g.fillStyle = r() > .3 ? P.gold : P.saffron; g.fillRect(x + px * s, y + py * s, 1.3, 1.3); }
+  }
+}
+function threads(g, x0, y0, x1, y1, n = 5) {
+  g.lineCap = 'round';
+  for (let i=0;i<n;i++){ g.strokeStyle = i%2?P.saffron:'#c2361f'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x0+i*2, y0); g.bezierCurveTo(x0+30+i*6, y0-40-i*8, x1-40, y1+30+i*5, x1+i*4, y1+i*3); g.stroke(); }
+}
+function text(g, str, x, y, size, color = P.cream, italic = true) { g.fillStyle = color; g.font = `${italic?'italic ':''}400 ${size}px "Cormorant Garamond", Georgia, serif`; g.textAlign = 'center'; g.fillText(str, x, y); }
+function card(g, x, y, w, label) { g.fillStyle = 'rgba(19,10,18,.95)'; g.fillRect(x, y, w, w*1.4); g.strokeStyle = P.gold; g.lineWidth = 1; g.strokeRect(x, y, w, w*1.4); g.fillStyle = P.cream; g.font = `500 ${w*.2}px Inter, sans-serif`; g.textAlign='center'; g.fillText(label, x+w/2, y+w*1.2); }
+function floor(g, W, H, y) { const f = g.createLinearGradient(0, y, 0, H); f.addColorStop(0, '#120a10'); f.addColorStop(1, P.night); g.fillStyle = f; g.fillRect(0, y, W, H-y); }
+
+const scenes = {
+  a1(g,W,H){ head(g, W*.62, H*.42, 2.6); const b = g.createLinearGradient(0,0,W,H); b.addColorStop(.35,'rgba(7,4,10,.85)'); b.addColorStop(.5,'rgba(242,163,58,.25)'); b.addColorStop(.62,'rgba(7,4,10,.85)'); g.fillStyle=b; g.fillRect(0,0,W,H); text(g,'Some nights',W/2,H*.68,22); },
+  a2(g,W,H){ floor(g,W,H,H*.72); g.fillStyle='#0f0a0d'; g.fillRect(W*.25,H*.56,W*.5,H*.2); head(g,W/2,H*.4,1.05); text(g,'are made to be remembered',W/2,H*.68,11,P.gold,false); },
+  a3(g,W,H){ floor(g,W,H,H*.72); g.fillStyle='#0f0a0d'; g.fillRect(W*.15,H*.6,W*.7,H*.16); head(g,W*.38,H*.43,.95); bottle(g,W*.7,H*.6,.9); },
+  a4(g,W,H){ floor(g,W,H,H*.72); g.fillStyle='#0f0a0d'; g.fillRect(W*.15,H*.6,W*.7,H*.16); head(g,W*.42,H*.43,.95); bottle(g,W*.72,H*.6,.85); threads(g,W*.72,H*.52,W*.42,H*.5,6); card(g,W*.06,H*.16,W*.2,'SAFFRON'); card(g,W*.74,H*.22,W*.2,'AMBER'); },
+  a5(g,W,H){ floor(g,W,H,H*.72); g.fillStyle='#0f0a0d'; g.fillRect(W*.15,H*.6,W*.7,H*.16); head(g,W*.4,H*.43,.95,.9); bottle(g,W*.7,H*.6,.85); },
+  end(g,W,H){ floor(g,W,H,H*.5); bottle(g,W/2,H*.48,1.1); g.fillStyle=P.gold; g.font='400 26px "Cormorant Garamond", Georgia, serif'; g.textAlign='center'; g.fillText('ORVELLE',W/2,H*.6); g.fillRect(W/2-24,H*.62,48,1); g.font='500 8px Inter, sans-serif'; g.fillStyle=P.cream; g.fillText('MIDNIGHT SAFFRON',W/2,H*.655); g.fillStyle=P.gold; g.font='italic 400 11px "Cormorant Garamond", serif'; g.fillText('Eau de Parfum',W/2,H*.69); },
+  b1(g,W,H){ floor(g,W,H,H*.62); bottle(g,W/2,H*.62,2.1); g.strokeStyle='rgba(246,234,214,.5)'; g.lineWidth=1; for(let i=0;i<4;i++){ g.beginPath(); g.moveTo(W/2,H*.5); g.lineTo(i*W/3,i%2?0:H); g.stroke(); } text(g,'Some nights',W/2,H*.78,22); },
+  b2(g,W,H){ const s=g.createLinearGradient(0,0,0,H); s.addColorStop(0,'#3a1808'); s.addColorStop(.6,'#c9661f'); s.addColorStop(1,'#2a0c06'); g.fillStyle=s; g.fillRect(0,0,W,H); g.fillStyle='rgba(255,220,150,.35)'; for(let i=0;i<3;i++){ g.beginPath(); g.ellipse(W*(.2+i*.35),H*.72,W*.4,H*.05,0,Math.PI,0); g.fill(); } threads(g,W*.1,H*.2,W*.8,H*.35,4); },
+  b3(g,W,H){ const s=g.createRadialGradient(W/2,H*.45,0,W/2,H*.45,H*.6); s.addColorStop(0,'#7a3410'); s.addColorStop(1,'#1a0806'); g.fillStyle=s; g.fillRect(0,0,W,H); figure(g,W/2,H*.52,1.5,P.gold,true); },
+  b4(g,W,H){ g.fillStyle='#1a0806'; g.fillRect(0,0,W,H); g.fillStyle='rgba(194,54,31,.6)'; for(let i=0;i<40;i++) g.fillRect((i*37)%W, H*.72+(i%5)*6, 1.5, 12); g.fillStyle='rgba(242,163,58,.4)'; g.fillRect(W*.62,H*.3,10,H*.45); g.fillRect(W*.8,H*.25,10,H*.5); figure(g,W*.38,H*.6,1.1,P.gold,true); g.fillStyle=P.gold; g.font='500 9px Inter, sans-serif'; g.textAlign='center'; g.fillText('SAFFRON',W*.2,H*.88); g.fillText('AMBER',W*.72,H*.22); },
+  b5(g,W,H){ floor(g,W,H,H*.66); g.fillStyle='#160c10'; g.fillRect(0,H*.6,W,H*.06); bottle(g,W/2,H*.62,1.3); g.fillStyle=P.gold; for(let i=0;i<60;i++){ g.globalAlpha=.6; g.fillRect((i*53)%W,(i*97)%H*.55,2,2);} g.globalAlpha=1; },
+  c1(g,W,H){ const s=g.createLinearGradient(0,0,0,H); s.addColorStop(0,'#0c0710'); s.addColorStop(1,'#1a0c14'); g.fillStyle=s; g.fillRect(0,0,W,H); g.fillStyle='rgba(242,163,58,.3)'; g.fillRect(W*.7,H*.1,W*.25,H*.5); g.strokeStyle='rgba(246,234,214,.25)'; for(let i=0;i<40;i++){ g.beginPath(); g.moveTo((i*29)%W,(i*71)%H); g.lineTo((i*29)%W-3,(i*71)%H+10); g.stroke(); } figure(g,W*.42,H*.62,1.6,'#050305'); g.strokeStyle=P.saffron; g.lineWidth=1; g.beginPath(); g.moveTo(W*.42+14,H*.62-120); g.lineTo(W*.42+20,H*.62+45); g.stroke(); text(g,'Some nights',W/2,H*.86,20); },
+  c2(g,W,H){ g.fillStyle='#0c0710'; g.fillRect(0,0,W,H); g.fillStyle='#24121a'; g.fillRect(W*.1,H*.2,W*.8,H*.45); g.strokeStyle=P.gold; g.strokeRect(W*.1,H*.2,W*.8,H*.45); bottle(g,W*.6,H*.55,1.2); figure(g,W*.3,H*.72,1.3,'#050305'); },
+  c3(g,W,H){ g.fillStyle='#0c0710'; g.fillRect(0,0,W,H); g.fillStyle=P.saffron; g.font='500 10px Inter, sans-serif'; g.textAlign='center'; g.fillText('SAFFRON',W*.2,H*.18); g.fillStyle=P.gold; g.fillText('AMBER',W*.78,H*.26); g.fillText('OUD',W*.24,H*.34); figure(g,W*.55,H*.7,1.4,'#050305'); threads(g,W*.05,H*.45,W*.55,H*.55,5); },
+  c4(g,W,H){ g.fillStyle='#0c0710'; g.fillRect(0,0,W,H); const l=g.createRadialGradient(W/2,H*.1,0,W/2,H*.45,H*.5); l.addColorStop(0,'rgba(242,163,58,.55)'); l.addColorStop(1,'rgba(242,163,58,0)'); g.fillStyle=l; g.fillRect(0,0,W,H); figure(g,W/2,H*.62,1.8,'#0a0508'); threads(g,W*.15,H*.4,W/2+30,H*.62-180,5); },
+  c5(g,W,H){ g.fillStyle='#0c0710'; g.fillRect(0,0,W,H*.5); floor(g,W,H,H*.5); g.strokeStyle='rgba(242,163,58,.35)'; for(let i=0;i<8;i++){ g.beginPath(); g.moveTo(W*.2+i*12,H*.55); g.lineTo(W*.2+i*12,H*.95); g.stroke(); } bottle(g,W/2,H*.5,1.1); }
+};
+function draw() {
+  document.querySelectorAll('canvas[data-scene]').forEach(cv => {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = 180, H = 320; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.scale(dpr, dpr);
+    g.fillStyle = P.night; g.fillRect(0, 0, W, H);
+    try { scenes[cv.dataset.scene](g, W, H); } catch (e) { console.error(e); }
+    const v = g.createRadialGradient(W/2, H/2, H*.25, W/2, H/2, H*.7); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.55)'); g.fillStyle = v; g.fillRect(0, 0, W, H);
+  });
+}
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(draw);
+draw();
+</script>
