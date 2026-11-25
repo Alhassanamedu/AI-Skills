@@ -1,0 +1,9 @@
+# ElevenLabs regen 2026-11-25, flow 9NmvWfYpu8AKtCB4jL7v, generation x2hI9MlRrE0YzgdmXhnP (eleven_v4, voice "Belle B – Premium Ad Narrator")
+# Cut points measured with silencedetect (-40dB, 0.18s), padded 30ms before / 50ms after. Placements unchanged from take B.
+# name      take start  take end   place at (ms)
+hook        0.17        3.26       250
+saffron     3.66        4.50       3700
+amber       4.86        5.56       5200
+oud         5.92        6.46       6550
+orvelle     6.75        7.52       7550
+midnight    7.84        9.20       8600

@@ -7,6 +7,7 @@ set -euo pipefail
 VIDEO=$1 TAKE=$2 SCORE=$3 OUT=$4
 
 # name            take start  take end   place at (ms)
+# Take B cut points below; set CUTS=<file> (same 4 columns, # comments allowed) to use another take, e.g. kling/vo-cuts-v4take2.txt
 LINES=(
   "hook            0.15        3.22       250"    # Some nights... are made to be remembered.
   "saffron         4.06        4.93       3700"
@@ -16,6 +17,7 @@ LINES=(
   "midnight        9.40        10.83      8600"   # Midnight Saffron.
 )
 
+if [ -n "${CUTS:-}" ]; then mapfile -t LINES < <(grep -v '^\s*\(#\|$\)' "$CUTS" | sed 's/#.*//'); fi
 F=""; LABELS=""; i=0
 for row in "${LINES[@]}"; do
   read -r name a b at <<<"$row"

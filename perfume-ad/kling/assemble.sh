@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Assemble the human (Kling) version of "The Portrait" per kling/BRIEF.md.
-# Usage (from perfume-ad/kling): ./assemble.sh <kling-clip.mp4> <takeB.mp3>
+# Usage (from perfume-ad/kling): ./assemble.sh <kling-clip.mp4> [take.mp3]
+#   Default take: build/vo-take2.mp3 (ElevenLabs regen, cut points in vo-cuts-v4take2.txt). For the original take B: CUTS= ./assemble.sh clip.mp4 takeB.mp3
 #   Kling clip 0–7.3s (its audio stripped) + coded end card (portrait.html?nobust) with a 0.3s dissolve at 7.0–7.3s,
 #   then ../vo-mix.sh adds voiceover + score, then a reel-export encode and ffprobe check.
 # Needs build/endcard-7.0-10.0-1080.mp4 and build/score.wav (rendered by: HITS=0.4,3.0,3.5,5.0,6.35,7.45 node ../score.js build/score.wav and node ../render.js --page portrait.html --scale 2 --query nobust --from 7.0 --out kling/build/endcard-7.0-10.0-1080.mp4).
 set -euo pipefail
 cd "$(dirname "$0")"
-KLING=$1 TAKE=$2
+KLING=$1 TAKE=${2:-build/vo-take2.mp3}
+export CUTS=${CUTS-vo-cuts-v4take2.txt}
 B=build; mkdir -p "$B"
 ENC="-c:v libx264 -profile:v high -crf 17 -preset slow -pix_fmt yuv420p -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709"
 
