@@ -1,0 +1,360 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Orvelle Ad</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;background:#000}
+  canvas{display:block;width:1080px;height:1920px}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// ORVELLE — "Midnight Saffron" — 10s motion graphic ad (fictitious brand)
+// Fully deterministic: renderFrame(t) draws the frame at time t (seconds).
+const W = 1080, H = 1920, DUR = 10;
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const eInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eBack = k => { const s = 1.4; k -= 1; return k * k * ((s + 1) * k + s) + 1; };
+// in/out envelope: fades in over [a,b], holds, fades out over [cc,d]
+const env = (t, a, b, cc, d) => Math.min(eOut(prog(t, a, b)), 1 - eInOut(prog(t, cc, d)));
+
+// seeded random
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+const GOLD = '#e8c27a', GOLD_D = '#a87b3a', CREAM = '#f6ead6';
+
+const particles = Array.from({ length: 170 }, () => ({
+  x: rnd() * W, y: rnd() * H, r: .6 + rnd() * 2.4,
+  vx: (rnd() - .5) * 18, vy: -10 - rnd() * 40,
+  ph: rnd() * 6.28, sp: 1 + rnd() * 3, ang: rnd() * 6.28, rad: 160 + rnd() * 380
+}));
+
+function background(t) {
+  // deep plum night with a saffron glow that blooms when the bottle arrives
+  ctx.fillStyle = '#07040a';
+  ctx.fillRect(0, 0, W, H);
+  const gx = 540 + Math.sin(t * .5) * 60, gy = 900 + Math.cos(t * .4) * 40;
+  let g = ctx.createRadialGradient(gx, gy, 0, gx, gy, 1300);
+  g.addColorStop(0, '#3a1328'); g.addColorStop(.45, '#1a0814'); g.addColorStop(1, '#07040a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  const bloom = eOut(prog(t, 2.4, 4.5)) * (0.85 + .15 * Math.sin(t * 2));
+  g = ctx.createRadialGradient(540, 1000, 0, 540, 1000, 720);
+  g.addColorStop(0, `rgba(242,163,58,${.38 * bloom})`);
+  g.addColorStop(.5, `rgba(190,80,40,${.14 * bloom})`);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+function silk(t) {
+  // flowing silk ribbons
+  const a = env(t, 0, 1.5, 9.4, 10.2);
+  for (let k = 0; k < 3; k++) {
+    ctx.save();
+    ctx.globalAlpha = a * (.10 + k * .04);
+    const g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, 'rgba(232,194,122,0)');
+    g.addColorStop(.5, k === 1 ? '#c8553d' : GOLD);
+    g.addColorStop(1, 'rgba(232,194,122,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    const base = 520 + k * 520, amp = 120 + k * 30, ph = t * (.6 + k * .15) + k * 2;
+    for (let x = -20; x <= W + 20; x += 20) {
+      const y = base + Math.sin(x / 260 + ph) * amp + Math.sin(x / 120 - ph * 1.3) * 25;
+      x === -20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    for (let x = W + 20; x >= -20; x -= 20) {
+      const y = base + 40 + Math.sin(x / 240 + ph + .5) * amp + Math.sin(x / 140 - ph) * 30;
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function dust(t) {
+  const swirl = eInOut(prog(t, 4.3, 5.6)) * (1 - eInOut(prog(t, 6.6, 7.6)));
+  const a = env(t, 0, 1.2, 9.5, 10.2);
+  ctx.save();
+  for (const p of particles) {
+    let x = ((p.x + p.vx * t) % W + W) % W;
+    let y = ((p.y + p.vy * t) % H + H) % H;
+    // swirl around the bottle during the "notes" beat
+    const ang = p.ang + t * 1.6, sx = 540 + Math.cos(ang) * p.rad, sy = 1000 + Math.sin(ang) * p.rad * .55;
+    x = lerp(x, sx, swirl * .8); y = lerp(y, sy, swirl * .8);
+    const tw = .35 + .65 * (.5 + .5 * Math.sin(t * p.sp + p.ph));
+    ctx.globalAlpha = a * tw * .85;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, p.r * 4);
+    g.addColorStop(0, '#fff3d6'); g.addColorStop(.3, GOLD); g.addColorStop(1, 'rgba(232,194,122,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, p.r * 4, 0, 6.283); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+}
+
+// bottle drawn with origin at its base centre
+function bottleShape(t, sweepK) {
+  // glass body
+  rr(-190, -560, 380, 560, 46);
+  let g = ctx.createLinearGradient(-190, 0, 190, 0);
+  g.addColorStop(0, 'rgba(255,240,220,.10)'); g.addColorStop(.18, 'rgba(255,240,220,.28)');
+  g.addColorStop(.5, 'rgba(255,240,220,.06)'); g.addColorStop(.85, 'rgba(255,240,220,.22)');
+  g.addColorStop(1, 'rgba(255,240,220,.08)');
+  ctx.fillStyle = g; ctx.fill();
+
+  // liquid
+  ctx.save();
+  rr(-166, -500, 332, 476, 30); ctx.clip();
+  g = ctx.createLinearGradient(0, -500, 0, -24);
+  g.addColorStop(0, '#f6b34a'); g.addColorStop(.55, '#d9701f'); g.addColorStop(1, '#6e2410');
+  ctx.fillStyle = g; ctx.fillRect(-170, -505, 340, 485);
+  // meniscus wobble
+  ctx.fillStyle = 'rgba(255,230,170,.55)';
+  ctx.beginPath(); ctx.moveTo(-170, -500);
+  for (let x = -170; x <= 170; x += 10) ctx.lineTo(x, -500 + Math.sin(x / 40 + t * 3) * 2.5);
+  ctx.lineTo(170, -490); ctx.lineTo(-170, -490); ctx.fill();
+  // inner glow
+  const ig = ctx.createRadialGradient(-40, -300, 0, -40, -300, 260);
+  ig.addColorStop(0, 'rgba(255,220,150,.45)'); ig.addColorStop(1, 'rgba(255,220,150,0)');
+  ctx.fillStyle = ig; ctx.fillRect(-170, -505, 340, 485);
+  ctx.restore();
+
+  // label
+  ctx.save();
+  ctx.fillStyle = 'rgba(20,8,12,.55)';
+  rr(-118, -330, 236, 120, 6); ctx.fill();
+  ctx.strokeStyle = GOLD; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = GOLD; ctx.textAlign = 'center';
+  ctx.font = '500 40px "Cormorant Garamond"';
+  ctx.letterSpacing = '10px';
+  ctx.fillText('ORVELLE', 5, -268);
+  ctx.font = '300 14px Inter'; ctx.letterSpacing = '5px';
+  ctx.fillText('MIDNIGHT SAFFRON', 2.5, -238);
+  ctx.restore();
+
+  // glass edges
+  rr(-190, -560, 380, 560, 46);
+  ctx.strokeStyle = 'rgba(255,240,220,.55)'; ctx.lineWidth = 3; ctx.stroke();
+  rr(-176, -546, 352, 532, 36);
+  ctx.strokeStyle = 'rgba(255,240,220,.16)'; ctx.lineWidth = 2; ctx.stroke();
+  // vertical highlight
+  g = ctx.createLinearGradient(-160, 0, -120, 0);
+  g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(-160, -520, 40, 470);
+
+  // neck + collar
+  ctx.fillStyle = 'rgba(255,240,220,.3)'; ctx.fillRect(-48, -600, 96, 42);
+  g = ctx.createLinearGradient(-86, 0, 86, 0);
+  g.addColorStop(0, GOLD_D); g.addColorStop(.35, '#fff0c4'); g.addColorStop(.6, GOLD); g.addColorStop(1, '#6b4a1e');
+  ctx.fillStyle = g; rr(-86, -646, 172, 50, 6); ctx.fill();
+
+  // cap
+  g = ctx.createLinearGradient(-100, 0, 100, 0);
+  g.addColorStop(0, '#0d0709'); g.addColorStop(.3, '#3b2a2a'); g.addColorStop(.45, '#14090c'); g.addColorStop(1, '#050304');
+  ctx.fillStyle = g; rr(-100, -860, 200, 216, 10); ctx.fill();
+  ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = GOLD; ctx.fillRect(-100, -676, 200, 4);
+
+  // light sweep across whole bottle
+  if (sweepK > 0 && sweepK < 1) {
+    ctx.save();
+    rr(-190, -560, 380, 560, 46); ctx.rect(-100, -860, 200, 300); ctx.clip();
+    const sx = lerp(-520, 520, sweepK);
+    const sg = ctx.createLinearGradient(sx - 120, -900, sx + 120, 100);
+    sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(.5, 'rgba(255,250,235,.55)'); sg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sg; ctx.fillRect(-200, -870, 400, 880);
+    ctx.restore();
+  }
+}
+
+function bottle(t) {
+  const kIn = prog(t, 2.3, 3.5);
+  if (kIn <= 0) return;
+  const kOut = eInOut(prog(t, 7.2, 8.2));
+  const fl = Math.sin(t * 1.8) * 8 * eOut(prog(t, 3.4, 4.2));
+  const baseY = lerp(1360, 1180, kOut) + (1 - eOut(kIn)) * 420 + fl;
+  const s = lerp(lerp(.88, 1, eBack(kIn)), .78, kOut);
+  const a = eOut(kIn) * (1 - eInOut(prog(t, 9.6, 10.2)) * .0);
+  const sweep = t < 6 ? prog(t, 3.4, 4.4) : prog(t, 8.2, 9.1);
+
+  // reflection
+  ctx.save();
+  ctx.globalAlpha = a * .16;
+  ctx.translate(540, baseY - fl * 2); ctx.scale(s, -s * .55);
+  bottleShape(t, 0);
+  ctx.restore();
+  const fg = ctx.createLinearGradient(0, baseY, 0, baseY + 420 * s);
+  fg.addColorStop(0, 'rgba(7,4,10,.25)'); fg.addColorStop(1, 'rgba(7,4,10,1)');
+  ctx.fillStyle = fg; ctx.fillRect(0, baseY - fl, W, H);
+
+  // contact shadow
+  ctx.save();
+  ctx.globalAlpha = a * .6;
+  const sh = ctx.createRadialGradient(540, baseY - fl + 4, 0, 540, baseY - fl + 4, 260 * s);
+  sh.addColorStop(0, 'rgba(0,0,0,.8)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sh; ctx.scale(1, .12); ctx.translate(0, (baseY - fl) * (1 / .12 - 1));
+  ctx.beginPath(); ctx.arc(540, baseY - fl, 260 * s, 0, 6.283); ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.translate(540, baseY); ctx.scale(s, s);
+  bottleShape(t, sweep);
+  ctx.restore();
+}
+
+function spacedText(str, x, y, font, spacing, color, alpha, blur = 0) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = font; ctx.letterSpacing = spacing + 'px';
+  ctx.textAlign = 'center'; ctx.fillStyle = color;
+  if (blur > .2) ctx.filter = `blur(${blur}px)`;
+  ctx.fillText(str, x + spacing / 2, y);
+  ctx.restore();
+}
+
+function intro(t) {
+  if (t > 2.8) return;
+  // gold line draws outward
+  const lk = eInOut(prog(t, .2, 1.3)), lo = 1 - eInOut(prog(t, 2.0, 2.6));
+  ctx.save();
+  ctx.globalAlpha = lo;
+  const lg = ctx.createLinearGradient(540 - 300, 0, 540 + 300, 0);
+  lg.addColorStop(0, 'rgba(232,194,122,0)'); lg.addColorStop(.5, GOLD); lg.addColorStop(1, 'rgba(232,194,122,0)');
+  ctx.fillStyle = lg; ctx.fillRect(540 - 300 * lk, 958, 600 * lk, 2);
+  ctx.restore();
+
+  const a1 = env(t, .4, 1.2, 2.0, 2.6);
+  spacedText('Some nights', 540, 900 + (1 - eOut(prog(t, .4, 1.4))) * 30,
+    'italic 300 120px "Cormorant Garamond"', lerp(18, 2, eOut(prog(t, .4, 1.8))), CREAM, a1, (1 - a1) * 10);
+  const a2 = env(t, 1.0, 1.7, 2.0, 2.6);
+  spacedText('ARE MADE TO BE REMEMBERED', 540, 1040, '300 26px Inter',
+    lerp(20, 9, eOut(prog(t, 1.0, 2.2))), GOLD, a2, (1 - a2) * 8);
+}
+
+function notes(t) {
+  const items = [
+    { w: 'SAFFRON', sub: 'top note', x: 190, y: 560, t0: 4.5, side: -1, bx: 470, by: 640 },
+    { w: 'AMBER', sub: 'heart note', x: 870, y: 900, t0: 5.1, side: 1, bx: 700, by: 960 },
+    { w: 'OUD', sub: 'base note', x: 200, y: 1250, t0: 5.7, side: -1, bx: 368, by: 1170, lx: 290 },
+  ];
+  for (const it of items) {
+    const a = env(t, it.t0, it.t0 + .6, 6.7, 7.3);
+    if (a <= 0) continue;
+    const lk = eOut(prog(t, it.t0, it.t0 + .7));
+    ctx.save();
+    ctx.globalAlpha = a * .8;
+    ctx.strokeStyle = GOLD; ctx.lineWidth = 1.5;
+    const sx = it.lx ?? (it.x + (it.side < 0 ? 160 : -110)), sy = it.y + 20;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(lerp(sx, it.bx, lk), lerp(sy, it.by, lk)); ctx.stroke();
+    ctx.fillStyle = GOLD;
+    ctx.beginPath(); ctx.arc(lerp(sx, it.bx, lk), lerp(sy, it.by, lk), 4, 0, 6.283); ctx.fill();
+    ctx.restore();
+    const dy = (1 - lk) * 24;
+    spacedText(it.w, it.x, it.y + dy, '500 52px "Cormorant Garamond"', lerp(14, 6, lk), CREAM, a, (1 - a) * 8);
+    spacedText(it.sub.toUpperCase(), it.x, it.y + 44 + dy, '300 17px Inter', 6, GOLD, a * .9);
+  }
+}
+
+function endCard(t) {
+  // gold shimmer flash on the transition
+  const fl = Math.sin(Math.PI * prog(t, 7.15, 7.75));
+  if (fl > 0) {
+    const g = ctx.createRadialGradient(540, 960, 0, 540, 960, 900);
+    g.addColorStop(0, `rgba(255,225,160,${.28 * fl})`); g.addColorStop(1, 'rgba(255,225,160,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  if (t < 7.5) return;
+  // brand name, letter by letter
+  const name = 'ORVELLE';
+  ctx.save();
+  ctx.font = '300 150px "Cormorant Garamond"'; ctx.letterSpacing = '0px';
+  const sp = lerp(70, 34, eOut(prog(t, 7.5, 9.2)));
+  const widths = [...name].map(ch => ctx.measureText(ch).width);
+  const total = widths.reduce((a, b) => a + b, 0) + sp * (name.length - 1);
+  let x = 540 - total / 2;
+  ctx.textAlign = 'left';
+  [...name].forEach((ch, i) => {
+    const k = prog(t, 7.6 + i * .09, 8.3 + i * .09);
+    const a = eOut(k);
+    ctx.save();
+    ctx.globalAlpha = a;
+    if (a < 1) ctx.filter = `blur(${(1 - a) * 12}px)`;
+    const g = ctx.createLinearGradient(0, 1380, 0, 1520);
+    g.addColorStop(0, '#fff3d6'); g.addColorStop(.6, GOLD); g.addColorStop(1, GOLD_D);
+    ctx.fillStyle = g;
+    ctx.fillText(ch, x, 1500 + (1 - a) * 40);
+    ctx.restore();
+    x += widths[i] + sp;
+  });
+  ctx.restore();
+
+  // divider
+  const dk = eInOut(prog(t, 8.3, 9.0));
+  ctx.fillStyle = GOLD; ctx.globalAlpha = .8;
+  ctx.fillRect(540 - 110 * dk, 1550, 220 * dk, 1.5);
+  ctx.globalAlpha = 1;
+
+  const a1 = eOut(prog(t, 8.4, 9.1));
+  spacedText('MIDNIGHT SAFFRON', 540, 1610, '400 28px Inter', 12, CREAM, a1);
+  spacedText('Eau de Parfum', 540, 1665, 'italic 300 40px "Cormorant Garamond"', 3, GOLD, a1);
+  const a2 = eOut(prog(t, 8.9, 9.5));
+  spacedText('DISCOVER THE NIGHT', 540, 1800, '300 22px Inter', lerp(16, 10, a2), 'rgba(246,234,214,.75)', a2);
+}
+
+function vignette(t) {
+  const g = ctx.createRadialGradient(540, 960, 500, 540, 960, 1200);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.65)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // fade from black at start
+  const fb = 1 - eOut(prog(t, 0, .6));
+  if (fb > 0) { ctx.fillStyle = `rgba(0,0,0,${fb})`; ctx.fillRect(0, 0, W, H); }
+}
+
+window.renderFrame = function (t) {
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+  background(t);
+  silk(t);
+  dust(t);
+  bottle(t);
+  intro(t);
+  notes(t);
+  endCard(t);
+  vignette(t);
+  ctx.restore();
+};
+
+window.ready = document.fonts.ready.then(() => Promise.all([
+  document.fonts.load('300 100px "Cormorant Garamond"'),
+  document.fonts.load('500 100px "Cormorant Garamond"'),
+  document.fonts.load('italic 300 100px "Cormorant Garamond"'),
+  document.fonts.load('300 20px Inter'), document.fonts.load('400 20px Inter'),
+])).then(() => true);
+
+// live preview when opened in a browser (not during capture)
+if (!new URLSearchParams(location.search).has('capture')) {
+  const t0 = performance.now();
+  (function loop() { window.renderFrame(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>
