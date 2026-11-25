@@ -216,9 +216,9 @@ function cardTex(word, sub, motif) {
 }
 const cards = [
   // screen anchor (1080x1920 px) + depth from the lens: cards fly in from near the camera and settle in depth
-  { word: 'SAFFRON', sub: 'TOP NOTE', motif: 'threads', t0: 4.6, at: [470, 370], from: [380, 180] },
-  { word: 'AMBER', sub: 'HEART NOTE', motif: 'amber', t0: 5.1, at: [835, 1245], from: [1000, 1420] },
-  { word: 'OUD', sub: 'BASE NOTE', motif: 'wood', t0: 5.6, at: [245, 1255], from: [60, 1440] },
+  { word: 'SAFFRON', sub: 'TOP NOTE', motif: 'threads', t0: 3.5, at: [470, 370], from: [380, 180] },
+  { word: 'AMBER', sub: 'HEART NOTE', motif: 'amber', t0: 5.0, at: [835, 1245], from: [1000, 1420] },
+  { word: 'OUD', sub: 'BASE NOTE', motif: 'wood', t0: 6.35, at: [245, 1255], from: [60, 1440] },
 ].map(c => { const m = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.59), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, toneMapped: false, fog: false, side: THREE.DoubleSide }));
   scene.add(m); return { ...c, mesh: m }; });
 
@@ -271,7 +271,7 @@ function text(str, x, y, font, spacing, color, alpha, blur = 0) {
 }
 function typeLayer(t) {
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
-  const shade = eInOut(prog(t, 6.9, 8.0));
+  const shade = eInOut(prog(t, 7.0, 8.1));
   let g = ctx.createLinearGradient(0, 1040, 0, 1920);
   g.addColorStop(0, 'rgba(7,4,10,0)'); g.addColorStop(0.1, `rgba(7,4,10,${0.8 * shade})`); g.addColorStop(1, `rgba(7,4,10,${0.96 * shade})`);
   ctx.fillStyle = g; ctx.fillRect(0, 1040, 1080, 880);
@@ -283,23 +283,23 @@ function typeLayer(t) {
   const a2 = env(t, 0.9, 1.7, 2.5, 3.0);
   text('ARE MADE TO BE REMEMBERED', 540, 1270 + (1 - eOut(prog(t, 0.9, 1.7))) * 24, '300 26px Inter', lerp(16, 9, eOut(prog(t, 0.9, 2.0))), C.gold, a2, (1 - a2) * 6);
 
-  if (t > 7.2) {
+  if (t > 7.35) {
     const name = 'ORVELLE';
     ctx.save(); ctx.font = '300 130px "Cormorant Garamond"'; ctx.letterSpacing = '0px'; ctx.textAlign = 'left';
-    const sp = lerp(44, 28, eOut(prog(t, 7.3, 8.8)));
+    const sp = lerp(44, 28, eOut(prog(t, 7.45, 8.95)));
     const ws = [...name].map(ch => ctx.measureText(ch).width);
     let x = 540 - (ws.reduce((a, b) => a + b, 0) + sp * (name.length - 1)) / 2;
     [...name].forEach((ch, i) => {
-      const k = eOut(prog(t, 7.3 + i * 0.07, 8.1 + i * 0.07));
+      const k = eOut(prog(t, 7.45 + i * 0.07, 8.25 + i * 0.07));
       if (k > 0) { ctx.save(); ctx.globalAlpha = k; ctx.fillStyle = C.gold; if (k < 1) ctx.filter = `blur(${(1 - k) * 8 * SCALE}px)`; ctx.fillText(ch, x, 1150 + (1 - k) * 24); ctx.restore(); }
       x += ws[i] + sp;
     });
     ctx.restore();
-    const dk = eInOut(prog(t, 8.0, 8.7));
+    const dk = eInOut(prog(t, 8.15, 8.85));
     ctx.fillStyle = C.gold; ctx.globalAlpha = 0.85; ctx.fillRect(540 - 100 * dk, 1192, 200 * dk, 1.5); ctx.globalAlpha = 1;
-    const b = eOut(prog(t, 8.1, 8.9)); text('MIDNIGHT SAFFRON', 540, 1250 + (1 - b) * 24, '400 28px Inter', 12, C.cream, b);
-    const c = eOut(prog(t, 8.5, 9.3)); text('Eau de Parfum', 540, 1302 + (1 - c) * 24, 'italic 300 42px "Cormorant Garamond"', 3, C.gold, c);
-    const d = eOut(prog(t, 8.9, 9.5)); text('DISCOVER THE NIGHT', 540, 1392 + (1 - d) * 24, '300 22px Inter', 10, 'rgba(246,234,214,0.8)', d);
+    const b = eOut(prog(t, 8.5, 9.2)); text('MIDNIGHT SAFFRON', 540, 1250 + (1 - b) * 24, '400 28px Inter', 12, C.cream, b);
+    const c = eOut(prog(t, 8.9, 9.5)); text('Eau de Parfum', 540, 1302 + (1 - c) * 24, 'italic 300 42px "Cormorant Garamond"', 3, C.gold, c);
+    const d = eOut(prog(t, 9.2, 9.7)); text('DISCOVER THE NIGHT', 540, 1392 + (1 - d) * 24, '300 22px Inter', 10, 'rgba(246,234,214,0.8)', d);
   }
   g = ctx.createRadialGradient(540, 860, 520, 540, 960, 1250); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.6)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
@@ -351,7 +351,7 @@ function seek(t) {
   if (headBox) { warmU.uWarm.value = eOut(prog(t, 5.9, 6.6)); warmU.uSpread.value = lerp(headBox.min.y - 0.4, headBox.max.y + 0.3, eInOut(prog(t, 6.0, 8.2))); }
 
   for (const c of cards) {
-    const kin = eOut(prog(t, c.t0, c.t0 + 0.9)), kout = eInOut(prog(t, 6.6, 7.3));
+    const kin = eOut(prog(t, c.t0, c.t0 + 0.8)), kout = eInOut(prog(t, 7.05, 7.6));
     const sx = lerp(c.from[0], c.at[0], kin) + (c.at[0] > 540 ? 1 : -1) * kout * 260, sy = lerp(c.from[1], c.at[1], kin) + Math.sin(t * 0.8 + c.t0) * 6;
     const depth = lerp(2.0, 5.0, kin) + kout * 1.4;
     camFwd.set(0, 0, -1).applyQuaternion(camera.quaternion);
