@@ -370,6 +370,14 @@ function seek(t) {
   typeLayer(t);
 }
 window.seek = seek; window.DUR = DUR;
+// product still for references (e.g. Kling image-to-video): bottle alone, no bust, threads, cards or text
+window.productStill = () => {
+  seek(9.9); bust.visible = false; threads.forEach(th => th.m.visible = false); cards.forEach(c => c.mesh.visible = false);
+  camera.position.set(BOTTLE_X + 0.25, 2.0, 3.6); camera.lookAt(BOTTLE_X, 1.75, 0); camera.updateMatrixWorld();
+  bokeh.uniforms.aperture.value = 0.0004; bokeh.uniforms.focus.value = camera.position.distanceTo(new THREE.Vector3(BOTTLE_X, 1.8, 0));
+  composer.render(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(renderer.domElement, 0, 0, W, H);
+  return out.toDataURL('image/png');
+};
 
 window.ready = (async () => {
   await document.fonts.load('300 100px "Cormorant Garamond"');
