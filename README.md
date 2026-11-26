@@ -1,6 +1,6 @@
 # AI-Skills
 
-My collection of Claude Code skills. Started 25 November 2026; Remotion skills added 26 November 2026.
+My collection of Claude Code skills. Started 25 November 2026; Remotion and motion-kit skills added 26 November 2026.
 
 ## Install in Claude Code
 
@@ -8,6 +8,7 @@ My collection of Claude Code skills. Started 25 November 2026; Remotion skills a
 claude plugin marketplace add Alhassanamedu/AI-Skills
 claude plugin install motion-graphics@ai-skills
 claude plugin install remotion@ai-skills
+claude plugin install motion-kit@ai-skills
 ```
 
 Install only the plugin you need. To use just one skill instead, copy its folder from `plugins/<plugin>/skills/` into `~/.claude/skills/`.
@@ -27,6 +28,31 @@ Install only the plugin you need. To use just one skill instead, copy its folder
 - None of these is a true 3D renderer. They draw motion in code (HTML, canvas, WebGL). For a 3D look, Lemo-Opuscar's 3D-styled entries come closest; for photoreal 3D, use an AI video model (Kling, Higgsfield).
 - They work best in Claude Code with Opus 5.5 on high reasoning. Lemo-Opuscar is tuned for it.
 - HyperFrames also has an official Claude connector ("HyperFrames by HeyGen") for use in the Claude app without Claude Code.
+
+## Motion-kit skills
+
+Short motion graphics for LinkedIn, Instagram, TikTok and newsletters, built in code (`plugins/motion-kit`). Start with **brand-intake**: it writes `brand.md` and `MOTION.md` into your project, and the other skills read them.
+
+| Skill | What it makes |
+|---|---|
+| **brand-intake** | Setup step: your brand and motion rules, read by every other skill |
+| **motion-brief-writer** / **motion-prompt-writer** | Turn a rough idea into a precise build brief or 8-part Claude Motion prompt |
+| **reference-to-motion** | Turn a video or look you admire into a scene-by-scene prompt for your brand |
+| **motion-effects** | 16 premium UI, data, type and system effects as 8-second loops |
+| **animated-chart** | Looping data graphics; values stay exactly as given |
+| **milestone-reveal** | 12-second particle number reveal (followers, revenue…) |
+| **loop-cover** | Newsletter or blog cover as a seamless looping GIF |
+| **launch-video** | 30–45 s SaaS-style product launch video |
+| **apple-launch-film** | Mac-style launch film with menu bar and notch widgets |
+| **newsletter-promo** | 12–20 s promo clip for a newsletter edition |
+| **vox-explainer** | 30–60 s documentary explainer: torn paper, halftone, bold type |
+| **title-sequence-3d** | 8–15 s cinematic 3D opener in Three.js |
+| **model-showdown** | Same brief to three AI models, stacked into one comparison video |
+| **reel-export** | Convert any video into an upload-ready 1080×1920 reel |
+
+**Needs:** Node.js, Chrome and ffmpeg for rendering; `title-sequence-3d` uses Three.js.
+
+**Licence:** MIT. **Yes**, you can use it for paid client work. Overlaps in places with the motion-graphics plugin: use motion-kit for short social and marketing pieces, motion-graphics for longer films and explainers.
 
 ## Remotion skills
 
@@ -64,6 +90,7 @@ Copied from the upstream repositories on 25 November 2026. Showcase videos and i
 - Collage B-roll (English edition): https://github.com/MegaTroll222/VOX-COLLAGE-BROLL, adapted from https://github.com/pyang5166/gbro-collage-broll
 - Claude Animation Base: https://github.com/JohnHeibel/ClaudeAnimationBase (the `SKILL.md` wrapper is mine)
 - Lemo-Opuscar: https://github.com/lemomo-ai/lemo-opuscar
+- Motion-kit: https://github.com/charlie947/motion-graphics-skills (copied 25 November 2026 at commit 229022e; MIT, Charlie Hills). Merged as PR #1, moved into a plugin 26 November 2026
 - Remotion: https://github.com/remotion-dev/skills (copied 26 November 2026 at commit a3f4098; skill version 4.0.547)
 
 To update a skill, re-copy its folder from the upstream repo.

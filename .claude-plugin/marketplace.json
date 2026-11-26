@@ -4,7 +4,7 @@
     "name": "Alhassanamedu"
   },
   "metadata": {
-    "description": "Alhassanamedu's Claude Code skills: motion graphics, animated films and Remotion video."
+    "description": "Alhassanamedu's Claude Code skills: motion graphics, animated films, social motion design and Remotion video."
   },
   "plugins": [
     {
@@ -16,6 +16,11 @@
       "name": "remotion",
       "source": "./plugins/remotion",
       "description": "Remotion's official skills for making videos in React: create, preview, render, captions, maps, elements, upgrades and docs."
+    },
+    {
+      "name": "motion-kit",
+      "source": "./plugins/motion-kit",
+      "description": "Social and marketing motion graphics in code: brand intake, launch videos, animated charts, milestone reveals, loop covers, 3D titles, Vox-style explainers and reel export."
     }
   ]
 }
