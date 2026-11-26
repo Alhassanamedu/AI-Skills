@@ -6,6 +6,8 @@
 #   then ../vo-mix.sh adds voiceover + score, then a reel-export encode and ffprobe check.
 # Used for the 2026-11-26 cut: build/higgsfield-kling40flash-150020.mp4 (Kling 4.0 Flash, 720p) 0-6.6s slowed to 7.4s,
 #   because a mist cloud appears from her mouth at 6.6s. See build/kling-slowed-7.3.mp4 and the ffmpeg line in the commit message.
+# Note labels (Saffron / Amber / Oud on their spoken words) are overlaid before assembly: kling/notes.html rendered to
+#   transparent PNGs (0-7.4s, 30fps) and composited onto the slowed clip -> build/kling-slowed-notes.mp4.
 # Needs build/endcard-7.0-10.0-1080.mp4 and build/score.wav (rendered by: HITS=0.4,3.0,3.5,5.0,6.35,7.45 node ../score.js build/score.wav and node ../render.js --page portrait.html --scale 2 --query nobust --from 7.0 --out kling/build/endcard-7.0-10.0-1080.mp4).
 set -euo pipefail
 cd "$(dirname "$0")"

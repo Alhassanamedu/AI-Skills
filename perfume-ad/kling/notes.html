@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Orvelle Notes Overlay</title>
+<style>
+  @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 500; src: url(../fonts/cormorant.woff2) format('woff2'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 300 400; src: url(../fonts/inter.woff2) format('woff2'); }
+  html, body { margin: 0; background: transparent; }
+</style>
+</head>
+<body>
+<canvas id="out" width="1080" height="1920"></canvas>
+<script>
+// Note labels for the human (Kling) cut: transparent 1080x1920 overlay, seek(t) draws time t.
+// Each note lands on its spoken word (VO: Saffron 3.7, Amber 5.2, Oud 6.55). Type and timing from ../MOTION.md:
+// in 0.8s ease-out cubic, fade + 24px rise, tracking settles wide -> set. Stacked top/heart/base on the dark left side,
+// clear of her face, hands and the bottle. They stay up until the 7.0-7.3s dissolve to the end card takes them.
+const C = { gold: '#E8C27A', cream: '#F6EAD6' };
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = k => 1 - Math.pow(1 - k, 3);
+const lerp = (a, b, k) => a + (b - a) * k;
+const NOTES = [
+  { word: 'Saffron', sub: 'TOP NOTE', t0: 3.45, y: 640 },
+  { word: 'Amber', sub: 'HEART NOTE', t0: 4.95, y: 860 },
+  { word: 'Oud', sub: 'BASE NOTE', t0: 6.2, y: 1080 },
+];
+const X = 72;
+const out = document.getElementById('out'), ctx = out.getContext('2d');
+function text(str, x, y, font, spacing, color, alpha, blur) {
+  if (alpha <= 0.001) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = font; ctx.letterSpacing = spacing + 'px'; ctx.textAlign = 'left'; ctx.fillStyle = color;
+  if (blur > 0.3) ctx.filter = `blur(${blur}px)`;
+  ctx.fillText(str, x, y); ctx.restore();
+}
+window.seek = t => {
+  ctx.clearRect(0, 0, 1080, 1920);
+  // soft shade on the left so the type reads over hair and background; fades in with the first note
+  const shade = eOut(prog(t, 3.3, 4.1));
+  if (shade > 0) {
+    // feathered oval (no hard edges): radial gradient squashed horizontally, centred left of frame
+    ctx.save(); ctx.translate(0, 880); ctx.scale(1, 1.55);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 560);
+    g.addColorStop(0, `rgba(7,4,10,${0.6 * shade})`); g.addColorStop(0.55, `rgba(7,4,10,${0.38 * shade})`); g.addColorStop(1, 'rgba(7,4,10,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, -600, 600, 1200); ctx.restore();
+  }
+  for (const n of NOTES) {
+    const k = eOut(prog(t, n.t0, n.t0 + 0.8));
+    if (k <= 0) continue;
+    const rise = (1 - k) * 24;
+    text(n.word, X, n.y + rise, '300 96px "Cormorant Garamond"', lerp(14, 3, k), C.cream, k, (1 - k) * 8);
+    const k2 = eOut(prog(t, n.t0 + 0.15, n.t0 + 0.95));
+    text(n.sub, X + 4, n.y + 52 + (1 - k2) * 24, '400 24px Inter', lerp(16, 10, k2), C.gold, k2 * 0.95, (1 - k2) * 6);
+  }
+};
+window.ready = document.fonts.load('300 96px "Cormorant Garamond"').then(() => document.fonts.load('400 24px Inter')).then(() => true);
+</script>
+</body>
+</html>
