@@ -18,10 +18,15 @@ Human footage generated with AI (Kling 4.0 via Higgsfield; first frame Seedream 
 
 #motiondesign #perfumead #aivideo #creativecoding #conceptad
 
-## TikTok
+## TikTok (chosen 2026-11-26: scent-first angle, for fragrance lovers)
 
-POV: a perfume ad for a brand that doesn't exist 🕯️ ORVELLE Midnight Saffron. Saffron, amber, oud. Would you buy it?
+Saffron on top. Amber in the heart. Oud at the base. 🧡 If ORVELLE Midnight Saffron were real, would it be your night scent?
 
-Concept/spec work, not a real product. AI-generated footage (Kling via Higgsfield).
+Concept ad, not a real product. AI-generated.
 
-#perfumetok #aivideo #motiondesign #conceptad
+#fragrancetok #perfumetok #oud #saffron #nichefragrance
+
+Posting checklist:
+- Turn on TikTok's "AI-generated content" toggle (More options) before posting.
+- Cover frame: around 2s (wrist lifting, face lit), not the end card.
+- Reply to the first comments early; the question line is there to start them.
