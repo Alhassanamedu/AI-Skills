@@ -1,0 +1,8 @@
+{
+  "name": "remotion",
+  "version": "1.0.0",
+  "description": "Remotion's official skills for making videos in React: create, preview, render, captions, maps, elements, upgrades and docs.",
+  "author": {
+    "name": "Alhassanamedu"
+  }
+}

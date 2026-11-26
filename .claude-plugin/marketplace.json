@@ -4,13 +4,18 @@
     "name": "Alhassanamedu"
   },
   "metadata": {
-    "description": "Alhassanamedu's Claude Code skills, starting with motion graphics and animated films."
+    "description": "Alhassanamedu's Claude Code skills: motion graphics, animated films and Remotion video."
   },
   "plugins": [
     {
       "name": "motion-graphics",
       "source": "./plugins/motion-graphics",
       "description": "Code-rendered motion graphics and animated films: HyperFrames, onetake, Collage B-roll, Claude Animation Base and Lemo-Opuscar."
+    },
+    {
+      "name": "remotion",
+      "source": "./plugins/remotion",
+      "description": "Remotion's official skills for making videos in React: create, preview, render, captions, maps, elements, upgrades and docs."
     }
   ]
 }
