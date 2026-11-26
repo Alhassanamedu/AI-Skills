@@ -151,10 +151,12 @@ liquid.position.y = 0.92; bottle.add(liquid);
 const label = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.46), new THREE.MeshPhysicalMaterial({ roughness: 0.45, metalness: 0.2 }));
 label.position.set(0, 1.0, 0.452); bottle.add(label);
 const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.22, 48), glassMat); neck.position.y = 2.4; bottle.add(neck);
-const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.2, 64), goldMat); collar.position.y = 2.56; bottle.add(collar);
-const cap = new THREE.Mesh(new RoundedBoxGeometry(0.86, 0.96, 0.86, 5, 0.05), new THREE.MeshPhysicalMaterial({
-  color: '#0d0709', roughness: 0.32, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.08 })); cap.position.y = 3.14; bottle.add(cap);
-const band = new THREE.Mesh(new RoundedBoxGeometry(0.875, 0.05, 0.875, 2, 0.02), goldMat); band.position.y = 2.74; bottle.add(band);
+const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.2, 64), goldMat); collar.position.y = 2.56; bottle.add(collar);
+// cap: 2026-11-26 reduced from 0.86 x 0.96 (top-heavy) to a lower, narrower block, about 39% of body width
+const CAP_W = 0.62, CAP_H = 0.58, CAP_Y = 2.66 + CAP_H / 2;
+const cap = new THREE.Mesh(new RoundedBoxGeometry(CAP_W, CAP_H, CAP_W, 5, 0.045), new THREE.MeshPhysicalMaterial({
+  color: '#0d0709', roughness: 0.32, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.08 })); cap.position.y = CAP_Y; bottle.add(cap);
+const band = new THREE.Mesh(new RoundedBoxGeometry(CAP_W + 0.015, 0.04, CAP_W + 0.015, 2, 0.02), goldMat); band.position.y = 2.66 + 0.07; bottle.add(band);
 function labelTex() {
   const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512; const g = cv.getContext('2d');
   g.fillStyle = 'rgba(12,5,9,0.92)'; g.fillRect(0, 0, 1024, 512);
@@ -175,7 +177,7 @@ const fill = new THREE.HemisphereLight('#5a2a40', '#07040A', 0.0); scene.add(fil
 // ---------- saffron threads: grow from the cap and wrap the neck ----------
 const threads = [];
 function buildThreads() {
-  const capTop = new THREE.Vector3(BOTTLE_X, 1.0 + 3.62 * 0.45, 0);
+  const capTop = new THREE.Vector3(BOTTLE_X, 1.0 + (2.66 + CAP_H) * 0.45, 0);
   const neckY = headBox.min.y + 0.34, neckC = new THREE.Vector3(bust.position.x, neckY, 0.02);
   for (let i = 0; i < 7; i++) {
     const pts = [capTop.clone().add(new THREE.Vector3((rnd() - .5) * 0.08, 0.02, (rnd() - .5) * 0.08))];
